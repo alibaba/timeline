@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<title>基准测试</title>
+</head>
+<body>
+<script src="/static/import.demo.js" charset="utf-8"></script>
+<script type="text/javascript">
+const timeline = new Timeline({
+    pauseWhenInvisible: true,
+    duration: Infinity,
+    maxStep: 100,
+})
+
+timeline.addTrack({
+    duration: 500,
+    onStart: () => {console.log(timeline.currentTime);},
+    onUpdate: (time, p) => { console.log(timeline.currentTime) },
+    loop: true,
+})
+
+timeline.play()
+
+</script>
+</body>
+</html>

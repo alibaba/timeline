@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head>
+        <meta charset="utf-8">
+        <title>benchmark</title>
+    </head>
+    <body>
+    <script src="/static/import.demo.js" charset="utf-8"></script>
+    <script type="text/javascript">
+        const n = 100000
+        const timeline = new Timeline({})
+        timeline.play()
+        for (let i = 0; i < n; i++) {
+            timeline.addTrack({
+                startTime: i * 10,
+                duration: 2000,
+                onStart: () => {},
+                onUpdate: () => {},
+            })
+        }
+    </script>
+    </body>
+</html>

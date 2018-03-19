@@ -204,7 +204,16 @@ class Track {
 }
 
 const CONFIG_TIMELINE = {
+	duration: Infinity,
+	loop: false,
 	autoRecevery: false,
+	// 页面非激活状态（requestAnimationFrame不工作）时，自动停止播放
+	// 如果document.hidden不可用，则该项不会生效
+	// 避免长时间页面切走后切回，造成的时间突进
+	pauseWhenInvisible: false,
+	// 最长帧时间限制，如果帧长度超过这个值，则会被压缩到这个值
+	// 用于避免打断点时继续计时，端点结束后时间突进
+	maxStep: Infinity,
 };
 
 export default class Timeline {
@@ -219,13 +228,40 @@ export default class Timeline {
 
 		this.tracks = [];
 		this.currentTime = 0; // timeLocal
-		this.referenceTime = 0; // 参考时间
+		this._lastCurrentTime = 0;
+		this.referenceTime = this._getTimeNow(); // 参考时间
 
 		this.animationFrameID = 0;
 
 		this.running = false;
 
 		this.cbkEnd = [];
+
+		this._timeBeforeHidden = 0;
+		this._timeBeforePaused = 0;
+
+
+		// 非浏览器主线程环境则忽略
+		if (this.config.pauseWhenInvisible && typeof (document) !== 'undefined') {
+			// this.invisiblePause = document.hidden
+			document.addEventListener("visibilitychange", () => {
+				// if (!document.hidden) {
+				// 	console.log('重置时间');
+				// 	this.referenceTime = this._getTimeNow();
+				// }
+				if (document.hidden) {
+					// console.log('pause');
+					this._timeBeforeHidden = this.currentTime;
+					cancelAnimationFrame(this.animationFrameID);
+				} else {
+					// console.log('continue');
+					this.seek(this._timeBeforeHidden);
+					if (this.running) {
+						this.tick();
+					}
+				}
+			});
+		}
 	}
 
 	get onEnd() {
@@ -248,7 +284,12 @@ export default class Timeline {
 	tick(singleStep = false, time) {
 
 		if (time === undefined) {
+			this._lastCurrentTime = this.currentTime;
 			this.currentTime = this._getTimeNow() - this.referenceTime;
+			const step = this.currentTime - this._lastCurrentTime;
+			if (step > this.config.maxStep) {
+				this.seek(this._lastCurrentTime + this.config.maxStep);
+			}
 		} else {
 			this.seek(time);
 		}
@@ -304,6 +345,21 @@ export default class Timeline {
 	stop() {
 		this.running = false;
 		cancelAnimationFrame(this.animationFrameID);
+		return this;
+	}
+
+	pause() {
+		this.running = false;
+		this._timeBeforePaused = this.currentTime;
+		cancelAnimationFrame(this.animationFrameID);
+		return this;
+	}
+
+	resume() {
+		this.pause();
+		this.seek(this._timeBeforePaused);
+		this.running = true;
+		this.tick();
 		return this;
 	}
 

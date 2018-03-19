@@ -6,14 +6,13 @@
 
 `tnpm i --save @ali/Timeline`
 
-当前版本 `0.2.1`
+当前版本 `0.3.0`
 
 ## 基本使用
 
 ```javascript
 const timeline = new Timeline({
     duration: Infinity, // 整个timeline的时长，超过后会停止或循环
-    loop: false, // 结束后是否循环
     autoRecevery: true, // 是否自动回收结束的track轨道
 })
 
@@ -36,20 +35,35 @@ timeline.addTrack({
 
 #### `constructor`
 
-autoRecevery: false, // 是否自动回收结束的track轨道
-loop: false, // 结束后是否循环
-duration: Infinity, // 整个timeline的时长，超过后会停止或循环
+- autoRecevery: false,
+    - 是否自动回收结束的track轨道
+- loop: false,
+    - 结束后是否循环
+- duration: Infinity,
+    - 整个timeline的时长，超过后会停止或循环
+- pauseWhenInvisible: false,
+    - 不可见时自动暂停播放，
+    - 避免标签页不可见时继续计时，造成标签页可见后时间突进
+- maxStep: Infinity,
+    - 最长帧时间限制，如果帧步长超过这个值，则会被压缩到这个值,
+    - 用于避免打断点时继续计时，端点结束后时间突进
 
 #### methods
 
 `play()`
-开始播放
+开始播放（从头开始）
 
 `stop()`
 停止播放
 
 `seek(time)`
 时间定位
+
+`pause()`
+暂停播放，会记录当前时间，可以用resume恢复播放
+
+`resume()`
+恢复播放，配合pause使用，将当前时间恢复到上一次pause时的时间
 
 `recovery()`
 回收无用的track
@@ -59,10 +73,10 @@ duration: Infinity, // 整个timeline的时长，超过后会停止或循环
 
 #### properties
 
-currentTime: 当前时间
-running： 是否在播放中
-onEnd(setter): 播放完成的回调
-tracks: 这个timeline中所有的track
+- currentTime: 当前时间
+- running： 是否在播放中
+- onEnd(setter): 播放完成的回调
+- tracks: 这个timeline中所有的track
 
 
 ### **Track**
@@ -83,19 +97,31 @@ tracks: 这个timeline中所有的track
 - onInit,       首次开始前的回调，无论loop与否都只会触发一次，
 
 
+## 性能
+
+根据benchmark（demo/benchmark.html），Timeline中放入 100,000 个track时的**自身性能消耗**（所有回调函数设为空函数）为 `每帧2ms`。
+
+由于timeline中通常不会有这么多track，该组件不太可能成为性能瓶颈。
+
+根据`@ali/Flyline`的benchmark结果，相同功能下，Timeline的自身性能消耗小于Tween.
+
 ## 注意事项
 
-- Timeline基于requestAnimationFrame，精度限制在raf的调用频率
+- Timeline基于requestAnimationFrame，精度限制在raf的调用频率，通常为16ms或32ms
 
-- 由于(页面卡顿|用户来回切页面|轨道duration过短)等原因，可能会造成一些track的时间被整体跳过，timeline为了保证**最终结果正确**，依然会执行该track的所有回调(参数p=1)。
+- 由于(页面卡顿|用户来回切页面|轨道duration过短)等原因，可能会造成一些track的时间被整体跳过，timeline为了保证**最终结果正确**，依然会执行该track的所有回调。即：每个track的所有回调至少都会被调用一次，来保证最终结果的正确。
 
+
+## 更新说明
+
+#### v0.3.0
+
+- Timeline增加pauseWhenInvisible接口，默认关闭
+- Timeline增加maxStep接口，默认关闭
+- Timeline的duration默认Infinity
 
 
 ## TODO
-
-- 应该增加选项，当标签页切走或者严重卡顿时自动停止计时，以免长时间切出后累计大量未执行track，切回来之后一次性执行导致长时间卡顿。
-
-- 源码混乱
 
 - 加入循环次数的处理
 
