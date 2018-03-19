@@ -2,6 +2,12 @@
 
 时间线管理
 
+## 安装
+
+`tnpm i --save @ali/Timeline`
+
+当前版本 `0.2.1`
+
 ## 基本使用
 
 ```javascript
@@ -61,15 +67,20 @@ tracks: 这个timeline中所有的track
 
 ### **Track**
 
-id: undefined 方便debug
-loop: false,  是否循环
-startTime: 0, 开始时间
-endTime,      结束时间
-duration,     时长，duration和endTime输入一个即可
-onStart,      起始回调，参数：time
-onEnd,        终止回调，参数：time
-onUpdate,     过程会掉，参数：time, p 其中p为该轨道当前进度(0~1)
-onInit,       首次开始前的回调，无论loop与否都只会触发一次，
+一个track（轨道）是时间线上的一段区间，相当于Tween.js中的一个tween对象，有开始时间、结束时间、时长、起始回调、终止回调、过程回调，可以循环，首次开始还有初始化回调。
+
+![](https://img.alicdn.com/tfs/TB1yL.4ebGYBuNjy0FoXXciBFXa-2382-482.png)
+
+
+- id: undefined 方便debug
+- loop: false,  是否循环
+- startTime: 0, 开始时间
+- endTime,      结束时间
+- duration,     时长，duration和endTime输入一个即可
+- onStart,      起始回调，参数：time
+- onEnd,        终止回调，参数：time
+- onUpdate,     过程会掉，参数：time, p 其中p为该轨道当前进度(0~1)
+- onInit,       首次开始前的回调，无论loop与否都只会触发一次，
 
 
 ## 注意事项
