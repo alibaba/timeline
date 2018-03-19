@@ -25,7 +25,7 @@ window.performance.now !== undefined) {
 		return new Date().getTime();
 	};
 }
-window.getTimeNow = getTimeNow;
+// window.getTimeNow = getTimeNow;
 
 // const CONFIG_TRACK = {
 //  startTime: 0,
