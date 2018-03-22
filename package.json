@@ -1,6 +1,6 @@
 {
   "name": "@ali/Timeline",
-  "version": "0.3.1",
+  "version": "0.4.1",
   "author": "西萌",
   "description": "时间线系统",
   "main": "dist/Timeline.js",
@@ -20,7 +20,8 @@
     "open": "^0.0.5",
     "webpack": "^4.1.1",
     "webpack-cli": "^2.0.11",
-    "webpack-dev-middleware": "^3.0.1"
+    "webpack-dev-middleware": "^3.0.1",
+    "worker-loader": "^1.1.1"
   },
   "scripts": {
     "start": "node server.js",

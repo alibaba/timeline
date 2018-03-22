@@ -1,17 +1,18 @@
 /* eslint-disable */
 
-// ref: https://github.com/tweenjs/tween.js/blob/master/src/Tween.js
 let getTimeNow = null;
-if (typeof (window) === 'undefined' && typeof (process) !== 'undefined') {
+// @NOTE: chrome的Worker里也是有process的！！！
+// 			而且和node的process不一样！！！
+if (typeof (window) === 'undefined' && typeof (process) !== 'undefined' && process.hrtime !== undefined) {
 	getTimeNow = function () {
 		const time = process.hrtime();
 
 		// Convert [seconds, nanoseconds] to milliseconds.
 		return time[0] * 1000 + time[1] / 1000000;
 	};
-} else if (typeof (window) !== 'undefined' &&
-window.performance !== undefined &&
-window.performance.now !== undefined) {
+} else if (typeof (this) !== 'undefined' &&
+this.performance !== undefined &&
+this.performance.now !== undefined) {
 	// In a browser, use window.performance.now if it is available.
 	// This must be bound, because directly assigning this function
 	// leads to an invocation exception in Chrome.
@@ -26,6 +27,15 @@ window.performance.now !== undefined) {
 	};
 }
 // window.getTimeNow = getTimeNow;
+
+let raf, cancelRaf;
+if (typeof requestAnimationFrame !== 'undefined') {
+	raf = requestAnimationFrame;
+	cancelRaf = cancelAnimationFrame;
+} else {
+	raf = cbk => setTimeout(cbk, 20);
+	cancelRaf = clearTimeout;
+}
 
 // const CONFIG_TRACK = {
 //  startTime: 0,
@@ -44,7 +54,8 @@ class Track {
 	constructor({ id, loop, startTime = 0, endTime, duration,
 				  onStart, onEnd, onUpdate, onInit,
 			  /** target, from, to, easing, **/ }) {
-		this.id = id !== undefined ? id : ('' + 999999 * Math.random()).slice(0, 5);
+		this.id = id !== undefined ? id : '';
+		this.uuid = '' + 999999 * Math.random(); // @TODO not safe
 
 		this._startTime = startTime;
 		this._endTime = endTime;
@@ -127,6 +138,7 @@ class Track {
 	}
 
 	tick(_time) {
+		if (!this.alive) { return }
 		let time = _time;
 		// TODO: 循环，onEnd如何处理
 		if (this.loop && time > this._endTime) {
@@ -252,7 +264,7 @@ export default class Timeline {
 				if (document.hidden) {
 					// console.log('pause');
 					this._timeBeforeHidden = this.currentTime;
-					cancelAnimationFrame(this.animationFrameID);
+					cancelRaf(this.animationFrameID);
 				} else {
 					// console.log('continue');
 					this.seek(this._timeBeforeHidden);
@@ -324,7 +336,7 @@ export default class Timeline {
 			this.running = false;
 			return;
 		}
-		this.animationFrameID = requestAnimationFrame(() => this.tick());
+		this.animationFrameID = raf(() => this.tick());
 		return this;
 	}
 
@@ -344,14 +356,14 @@ export default class Timeline {
 
 	stop() {
 		this.running = false;
-		cancelAnimationFrame(this.animationFrameID);
+		cancelRaf(this.animationFrameID);
 		return this;
 	}
 
 	pause() {
 		this.running = false;
 		this._timeBeforePaused = this.currentTime;
-		cancelAnimationFrame(this.animationFrameID);
+		cancelRaf(this.animationFrameID);
 		return this;
 	}
 
@@ -387,12 +399,27 @@ export default class Timeline {
 		return track;
 	}
 
+	stopTrack(track) {
+		const uuid = track.uuid;
+		for (let i = this.tracks.length - 1; i >= 0 ; i--) {
+			if (this.tracks[i].uuid === uuid) {
+				this.tracks[i].alive = false;
+			}
+		}
+	}
+
 	destroy() {
 
 	}
 
-	getTrackByID(id) {
-
+	getTracksByID(id) {
+		const tracks = [];
+		for (let i = 0; i < this.tracks.length; i++) {
+			if (this.tracks[i].id === id) {
+				tracks.push(this.tracks[i])
+			}
+		}
+		return tracks;
 	}
 
 	static Track = Track

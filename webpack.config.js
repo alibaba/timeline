@@ -51,10 +51,12 @@ if (process.env.NODE_ENV === 'production') {
         publicPath: "/", // 为使内网可访问, 不指明host
         filename: "[name].js",
         libraryTarget: 'umd',
-        umdNamedDefine: true
+        umdNamedDefine: true,
+        globalObject: "this",
     };
 
     mode = 'production';
+    // mode = 'development';
 
 } else {
     console.log("deving");
