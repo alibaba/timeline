@@ -6,7 +6,7 @@
 
 `tnpm i --save @ali/Timeline`
 
-当前版本 `0.3.0`
+当前版本 `0.4.1`
 
 ## 基本使用
 
@@ -70,6 +70,12 @@ timeline.addTrack({
 
 `addTrack(trackConfig)`
 创建并添加一个轨道，详见Track
+
+`stopTrack({uuid})`
+停掉一个track，将其alive置为false，如果还未播放则不会在播放，如果正在播放则会停止，会被下一次recovery执行时被删掉
+
+`getTracksByID(id)`
+返回一个id匹配的track的数组
 
 #### properties
 
