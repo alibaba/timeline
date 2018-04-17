@@ -226,6 +226,8 @@ const CONFIG_TIMELINE = {
 	// 最长帧时间限制，如果帧长度超过这个值，则会被压缩到这个值
 	// 用于避免打断点时继续计时，端点结束后时间突进
 	maxStep: Infinity,
+	// 最大帧率限制
+	maxFPS: Infinity,
 };
 
 export default class Timeline {
@@ -237,6 +239,9 @@ export default class Timeline {
 
 		this.duration = this.config.duration;
 		this.loop = this.config.loop;
+
+		// 频率限制
+		this.minFrame = 1 / this.config.maxFPS;
 
 		this.tracks = [];
 		this.currentTime = 0; // timeLocal
@@ -296,6 +301,9 @@ export default class Timeline {
 	tick(singleStep = false, time) {
 
 		if (time === undefined) {
+			if (this.currentTime - this._lastCurrentTime < this.minFrame) {
+				return;
+			}
 			this._lastCurrentTime = this.currentTime;
 			this.currentTime = this._getTimeNow() - this.referenceTime;
 			const step = this.currentTime - this._lastCurrentTime;
