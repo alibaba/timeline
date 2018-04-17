@@ -11,12 +11,14 @@ const timeline = new Timeline({
     pauseWhenInvisible: true,
     duration: Infinity,
     maxStep: 100,
+    maxFPS: 30,
 })
 
 timeline.addTrack({
     duration: 500,
     onStart: () => {console.log(timeline.currentTime);},
-    onUpdate: (time, p) => { console.log(timeline.currentTime) },
+    // onUpdate: (time, p) => { console.log(timeline.currentTime) },
+    onUpdate: (time, p) => { document.body.innerHTML = time },
     loop: true,
 })
 

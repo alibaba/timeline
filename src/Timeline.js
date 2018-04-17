@@ -241,7 +241,7 @@ export default class Timeline {
 		this.loop = this.config.loop;
 
 		// 频率限制
-		this.minFrame = 1 / this.config.maxFPS;
+		this.minFrame = 900 / this.config.maxFPS;
 
 		this.tracks = [];
 		this.currentTime = 0; // timeLocal
@@ -301,11 +301,13 @@ export default class Timeline {
 	tick(singleStep = false, time) {
 
 		if (time === undefined) {
-			if (this.currentTime - this._lastCurrentTime < this.minFrame) {
-				return;
+			const currentTime = this._getTimeNow() - this.referenceTime;
+			if (currentTime - this.currentTime < this.minFrame) {
+				this.animationFrameID = raf(() => this.tick());
+				return this;
 			}
 			this._lastCurrentTime = this.currentTime;
-			this.currentTime = this._getTimeNow() - this.referenceTime;
+			this.currentTime = currentTime;
 			const step = this.currentTime - this._lastCurrentTime;
 			if (step > this.config.maxStep) {
 				this.seek(this._lastCurrentTime + this.config.maxStep);
