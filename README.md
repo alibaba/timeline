@@ -1,13 +1,20 @@
 # Timeline
 
-时间线管理
+时间线管理器
+
+> Manage all your events and animations together.
+>
+> Keep everything happen at the right time.
+
 
 
 # 安装
 
 `tnpm i --save @ali/Timeline`
 
-当前版本 `0.4.1`
+当前版本: `0.5.0`
+
+支持环境: `Dom环境`、`Web Worker`、`node`、`electron`
 
 ---
 
@@ -35,7 +42,7 @@ timeline.addTrack({
 
 # 接口
 
-## **TimeLine**
+## **Timeline**
 
 ### `constructor`
 
@@ -56,52 +63,54 @@ timeline.addTrack({
 
 ### methods
 
-`play()`
-开始播放（从头开始）
+- `play()`
+    - 开始播放（从头开始）
 
-`stop()`
-停止播放
+- `stop()`
+    - 停止播放
 
-`seek(time)`
-时间定位
 
-`pause()`
-暂停播放，会记录当前时间，可以用resume恢复播放
+- `seek(time)`
+    - 时间定位
 
-`resume()`
-恢复播放，配合pause使用，将当前时间恢复到上一次pause时的时间
+- `pause()`
+    - 暂停播放，会记录当前时间，可以用resume恢复播放
 
-`recovery()`
-回收无用的track
+- `resume()`
+    - 恢复播放，配合pause使用，将当前时间恢复到上一次pause时的时间
 
-`addTrack(trackConfig)`
-创建并添加一个轨道，详见Track
+- `recovery()`
+    - 回收无用的track
 
-`stopTrack({uuid})`
-停掉一个track，将其alive置为false，如果还未播放则不会在播放，如果正在播放则会停止，会被下一次recovery执行时被删掉
+- `addTrack(trackConfig)`
+    - 创建并添加一个轨道，详见Track
 
-`getTracksByID(id)`
-返回一个id匹配的track的数组
+- `stopTrack({uuid})`
+    - 停掉一个track，将其alive置为false，
+    - 如果还未播放则不会在播放，如果正在播放则会停止，会被下一次recovery执行时被删掉
+
+- `getTracksByID(id)`
+    - 返回一个id匹配的track的数组
 
 
 **以下接口行为与DOM标准保持一致，但是全部与timeline中的时间和行为对齐**
 
 
-`setTimeout(callback, time): Int`
-setTimeout的timeline版本，返回一个id可以用来取消
+- `setTimeout(callback, time): Int`
+    - setTimeout的timeline版本，返回一个id可以用来取消
 
-`clearTimeout(id)`
-同clearTimeout
+- `clearTimeout(id)`
+    - 同clearTimeout
 
-`setInterval(callback, time): Int`
-setInterval的timeline对齐版本，返回一个ID可以用来取消
+- `setInterval(callback, time): Int`
+    - setInterval的timeline对齐版本，返回一个ID可以用来取消
 
-`clearInterval(id)`
-同clearInterval
+- `clearInterval(id)`
+    - 同clearInterval
 
-`getTime()`
-类似于`new Date().getTime()`，获取当前系统时间的时间戳。
-如果调用了play，将以调用时的系统时间为基准；如果没有掉用过play，将以初始化时的系统时间为基准。
+- `getTime()`
+    - 类似于`new Date().getTime()`，获取当前系统时间的时间戳。
+    - 如果调用了play，将以调用时的系统时间为基准；如果没有掉用过play，将以初始化时的系统时间为基准。
 
 
 ### properties
@@ -147,17 +156,8 @@ setInterval的timeline对齐版本，返回一个ID可以用来取消
 - 由于(页面卡顿|用户来回切页面|轨道duration过短)等原因，可能会造成一些track的时间被整体跳过，timeline为了保证**最终结果正确**，依然会执行该track的所有回调。即：每个track的所有回调至少都会被调用一次，来保证最终结果的正确。
 
 
-# 更新说明
-
-### v0.3.0
-
-- Timeline增加pauseWhenInvisible接口，默认关闭
-- Timeline增加maxStep接口，默认关闭
-- Timeline的duration默认Infinity
-
-
 # TODO
 
-- [] 加入循环次数的处理
+- [ ] 加入循环次数的处理
 
-- [] 加入循环间隔的处理
+- [ ] 加入循环间隔的处理
