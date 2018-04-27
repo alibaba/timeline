@@ -1,34 +1,49 @@
 /* eslint-disable */
 
+// ============ polyfill START ============
+
+// 获取系统时间戳的函数
 let getTimeNow = null;
-// @NOTE: chrome的Worker里也是有process的！！！
-// 			而且和node的process不一样！！！
-if (typeof (window) === 'undefined' && typeof (process) !== 'undefined' && process.hrtime !== undefined) {
+
+// @NOTE: chrome的Worker里也是有process的!!!
+// 			而且和node的process不一样!!!
+if (typeof (window) === 'undefined' &&
+	typeof (process) !== 'undefined' &&
+	process.hrtime !== undefined) {
+
 	getTimeNow = function () {
 		const time = process.hrtime();
-
 		// Convert [seconds, nanoseconds] to milliseconds.
 		return time[0] * 1000 + time[1] / 1000000;
 	};
+
 } else if (typeof (this) !== 'undefined' &&
-this.performance !== undefined &&
-this.performance.now !== undefined) {
+			this.performance !== undefined &&
+			this.performance.now !== undefined) {
+
 	// In a browser, use window.performance.now if it is available.
 	// This must be bound, because directly assigning this function
 	// leads to an invocation exception in Chrome.
 	getTimeNow = window.performance.now.bind(window.performance);
+
 } else if (Date.now !== undefined) {
+
 	// Use Date.now if it is available.
 	getTimeNow = Date.now;
+
 } else {
+
 	// Otherwise, use 'new Date().getTime()'.
 	getTimeNow = function () {
 		return new Date().getTime();
 	};
-}
-// window.getTimeNow = getTimeNow;
 
+}
+
+//  raf
 let raf, cancelRaf;
+
+// NOTE 在Worker和node环境中不存在raf，因此可以使用setTimeout替代
 if (typeof requestAnimationFrame !== 'undefined') {
 	raf = requestAnimationFrame;
 	cancelRaf = cancelAnimationFrame;
@@ -37,25 +52,37 @@ if (typeof requestAnimationFrame !== 'undefined') {
 	cancelRaf = clearTimeout;
 }
 
-// const CONFIG_TRACK = {
-//  startTime: 0,
-//  endTime: undefined,
-//  onStart: undefined,
-//  onEnd: undefined,
-//  onUpdate: undefined,
-//  id: undefined,
-// }
+// ============ polyfill END ============
 
-// TODO: startTime === endTime的处理
-// TODO: startTime and endTime过于接近的问题
-// TODO: onP
-// TODO: 回调中提供与预定时间的偏移量
+
+
+let __trackUUID = 0; // 避免uuid重复
+
+/**
+ * Track 🚀 🚀 🚀
+ * 轨道，代表时间线上的一个行为对象，有自己的startTime, duration等特性
+ * TODO: startTime === endTime的处理
+ * TODO: startTime and endTime过于接近的问题
+ * TODO: onP
+ * TODO: 回调中提供与预定时间的偏移量
+ */
 class Track {
+	/**
+	 * 创建一个Track
+	 * @param {any} id - 命名，可以用来查找制定Track，也便与调试
+	 * @param {Bool} [loop=false] - 是否循环
+	 * @param {Number} [startTime=0] - 起始时间
+	 * @param {Number} endTime - 结束时间
+	 * @param {Number} duration - 时长
+	 * @param {Func} onStart - 开始时的回调，loop的话每次开始都会调用
+	 * @param {Func} onEnd - 结束时的回调，loop的话每次结束都会调用
+	 * @param {Func} onUpdate - 过程回调
+	 * @param {Func} onInit - 首次开始时的回调
+	 */
 	constructor({ id, loop, startTime = 0, endTime, duration,
-				  onStart, onEnd, onUpdate, onInit,
-			  /** target, from, to, easing, **/ }) {
+				  onStart, onEnd, onUpdate, onInit, }) {
 		this.id = id !== undefined ? id : '';
-		this.uuid = '' + 999999 * Math.random(); // @TODO not safe
+		this.uuid = '' + Math.random() + __trackUUID ++;
 
 		this._startTime = startTime;
 		this._endTime = endTime;
@@ -64,6 +91,8 @@ class Track {
 		this.onUpdate = onUpdate;
 		this.onInit = onInit;
 		this.loop = loop;
+
+		// 计算duration和endTime，处理endTime与duration不一致的情况
 
 		let _duration = duration; // es lint
 
@@ -75,6 +104,7 @@ class Track {
 			this._duration = _duration;
 			this._endTime = startTime + _duration;
 		}
+
 		if (endTime) {
 			this._duration = endTime - startTime;
 			if (this._endTime !== endTime) {
@@ -83,64 +113,47 @@ class Track {
 			}
 		}
 
-		if (this._startTime < 0 || this._endTime < this._startTime) {
+		if (this._startTime < 0 || this._endTime <= this._startTime) {
 			throw new Error('wrong parameters');
 		}
 
-		this.running = false;
-		this.inited = true;
+		this.running = false; // 运行中
+		this.inited = true; // 初始化完成
 		this.started = false; // 本轮播放过
 		// 循环次数
 		this.loopTime = 0;
 
-        // 可回收
-		this.alive = true;
-		//
-		// // target 的处理
-		// this._subTracks = [];
-		// // 根据to的值来提取需要缓动的值
-		// if (typeof to !== 'object') {
-		// 	to =
-		// 	this._keys = to.keys();
-		// 	this._offsets = {};
-		// 	this._keys.forEach(key => {
-		// 		this._offsets[key] = to[key] - (from)
-		// 	})
-		// } else {
-		//
-		// }
+        // 垃圾回收flag
+		this._alive = true;
 	}
 
-	// TODO: 这部分修改之后需要重新校验
-
-	get startTime() {
-		return this._startTime;
-	}
+	get startTime() { return this._startTime; }
 	set startTime(newTime) {
+		// TODO: 这部分修改之后需要重新校验
 		this._startTime = newTime;
 		this._endTime = this._startTime + this._duration;
 	}
 
-	get endTime() {
-		return this._endTime;
-	}
+	get endTime() { return this._endTime; }
 	set endTime(newTime) {
 		this._endTime = newTime;
 		this._duration = this._endTime = this._startTime;
 	}
 
-	get duration() {
-		return this._duration;
-	}
+	get duration() { return this._duration; }
 	set duration(newTime) {
 		this._duration = newTime;
 		this._endTime = this._startTime + this._duration;
 	}
 
+	get alive() { return this._alive; }
+	set alive(v) { this._alive = v; }
+
 	tick(_time) {
 		if (!this.alive) { return }
-		let time = _time;
-		// TODO: 循环，onEnd如何处理
+
+		let time = _time; // es lint
+		// TODO: 使用循环时，onEnd如何处理？暂时不处理
 		if (this.loop && time > this._endTime) {
 			// 循环次数, 处理onStart onEnd
 			const newLoopTime = Math.floor((time - this._startTime) / this._duration);
@@ -153,8 +166,9 @@ class Track {
 				return;
 			}
 		}
-		// console.log(time)
+
 		if (time < this._startTime) {
+			// Track未开始
 			if (this.running) {
 				this.running = false;
 				// NOTE: 避免终止位置不正确
@@ -168,6 +182,7 @@ class Track {
 			}
 
 		} else if (time > this._endTime) {
+			// Track已结束
 			if (this.running) {
 				this.running = false;
 				// NOTE: 避免终止位置不正确
@@ -189,18 +204,21 @@ class Track {
 			}
 
 		} else {
+			// Track运行中
 			if (!this.running) {
 				this.running = true;
 				this.inited = false;
 				this.started = true;
 				this.onStart && this.onStart(time);
 			}
-			this.onUpdate && this.onUpdate(time, (time - this._startTime) / this._duration);
+			if (this.onUpdate) {
+				this.onUpdate(time, (time - this._startTime) / this._duration);
+			}
 		}
 	}
 
-	safeClip(end) {
-		// 避免和时间线起点对齐导致onStart不能正确触发
+	// 避免和时间线起点对齐导致onStart不能正确触发
+	_safeClip(end) {
 		if (this._startTime === 0) {
 			this._startTime = 0.5;
 		}
@@ -214,6 +232,8 @@ class Track {
 		}
 	}
 }
+
+//
 
 const CONFIG_TIMELINE = {
 	duration: Infinity,
@@ -230,7 +250,14 @@ const CONFIG_TIMELINE = {
 	maxFPS: Infinity,
 };
 
+/**
+ * Timeline 🌺 🌺 🌺
+ * 接口风格与MediaElement保持一致
+ */
 export default class Timeline {
+	/**
+	 * 创建一个Timeline实例，建议全局使用一个实例来方便同一控制所有行为与动画
+	 */
 	constructor(config) {
 		this.config = {
 			...CONFIG_TIMELINE,
@@ -257,7 +284,9 @@ export default class Timeline {
 		this._timeBeforeHidden = 0;
 		this._timeBeforePaused = 0;
 
+		this._timeoutID = 0; // 用于给setTimeout和setInterval分配ID
 
+		// 页面不可见时暂停计时
 		// 非浏览器主线程环境则忽略
 		if (this.config.pauseWhenInvisible && typeof (document) !== 'undefined') {
 			// this.invisiblePause = document.hidden
@@ -281,21 +310,16 @@ export default class Timeline {
 		}
 	}
 
-	get onEnd() {
-		return this.cbkEnd;
-	}
-	set onEnd(cbk) {
-		this.cbkEnd.push(cbk);
-	}
+	// 播放结束的回调
+	get onEnd() { return this.cbkEnd; }
+	set onEnd(cbk) { this.cbkEnd.push(cbk); }
 
 	// 相对时间，只能用来计算差值
-	_getTimeNow() {
-		return getTimeNow();
-	}
+	_getTimeNow() { return getTimeNow(); }
 
 	/**
 	* 每帧调用
-	* @param  {Boolean} singleStep 单步逐帧播放
+	* @param  {Bool} singleStep 单步逐帧播放
 	* @param  {Num}  time  opt, 跳转到特定时间
 	*/
 	tick(singleStep = false, time) {
@@ -350,6 +374,7 @@ export default class Timeline {
 		return this;
 	}
 
+	// 开始播放
 	play() {
 		this.stop();
 		this.running = true;
@@ -358,18 +383,21 @@ export default class Timeline {
 		return this;
 	}
 
+	// 调到指定时间
 	seek(time) {
 		this.currentTime = time;
 		this.referenceTime = this._getTimeNow() - time;
 		return this;
 	}
 
+	// 停止播放
 	stop() {
 		this.running = false;
 		cancelRaf(this.animationFrameID);
 		return this;
 	}
 
+	// 暂停播放
 	pause() {
 		this.running = false;
 		this._timeBeforePaused = this.currentTime;
@@ -377,6 +405,7 @@ export default class Timeline {
 		return this;
 	}
 
+	// 从暂停中恢复， ** 不能从停止中恢复 **
 	resume() {
 		this.pause();
 		this.seek(this._timeBeforePaused);
@@ -385,6 +414,7 @@ export default class Timeline {
 		return this;
 	}
 
+	// 垃圾回收
 	recovery() {
         // 倒序删除，以免数组索引混乱
 		for (let i = this.tracks.length - 1; i >= 0; i--) {
@@ -394,7 +424,11 @@ export default class Timeline {
 		}
 	}
 
-	// addTrack(startTimeOrTrack, endTime, onStart, onEnd, onUpdate) {
+	/**
+	 * 根据配置创建一个Track
+	 * @param {Object} props 配置项，详见Track.constructor
+	 * @return {Track} 所创建的Track
+	 */
 	addTrack(props) {
 		// let track = null
 		// if (startTimeOrTrack instanceof Track) {
@@ -403,12 +437,13 @@ export default class Timeline {
 		//  track = new Track({startTimeOrTrack, endTime, onStart, onEnd, onUpdate})
 		// }
 		const track = new Track(props);
-		track.safeClip(this.duration);
+		track._safeClip(this.duration);
 		track.onInit && track.onInit(this.currentTime);
 		this.tracks.push(track);
 		return track;
 	}
 
+	// 停掉指定Track
 	stopTrack(track) {
 		const uuid = track.uuid;
 		for (let i = this.tracks.length - 1; i >= 0 ; i--) {
@@ -418,10 +453,16 @@ export default class Timeline {
 		}
 	}
 
+	// 清理掉整个Timeline，目前没有发现需要单独清理的溢出点
 	destroy() {
-
+		this.stop();
 	}
 
+	/**
+	 * 根据ID获取Tracks
+	 * @param  {Number} id
+	 * @return {Array(Track)}
+	 */
 	getTracksByID(id) {
 		const tracks = [];
 		for (let i = 0; i < this.tracks.length; i++) {
@@ -430,6 +471,41 @@ export default class Timeline {
 			}
 		}
 		return tracks;
+	}
+
+	// 重写Dom标准中的 setTimeout 和 setInterval
+
+	setTimeout(callback, time) {
+		const ID = this._timeoutID ++;
+		this.addTrack({
+			id: '__timeout__' + ID,
+			startTime: this.timeline.currentTime + time,
+			duration: 1000,
+			loop: false,
+			onStart: callback,
+		});
+		return ID;
+	}
+
+	setInterval(callback, time) {
+		const ID = this._timeoutID ++;
+		this.addTrack({
+			id: '__timeout__' + ID,
+			startTime: this.timeline.currentTime + time,
+			duration: time,
+			loop: true,
+			onStart: callback,
+		});
+		return ID;
+	}
+
+	clearTimeout(ID) {
+		const track = this.getTracksByID('__timeout__' + ID)[0];
+		if (track) this.stopTrack(track);
+	}
+
+	clearInterval(ID) {
+		this.clearTimeout(ID);
 	}
 
 	static Track = Track
