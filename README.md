@@ -155,6 +155,17 @@ timeline.addTrack({
 
 - 由于(页面卡顿|用户来回切页面|轨道duration过短)等原因，可能会造成一些track的时间被整体跳过，timeline为了保证**最终结果正确**，依然会执行该track的所有回调。即：每个track的所有回调至少都会被调用一次，来保证最终结果的正确。
 
+- 想使用Tween的缓动函数？很简单：
+
+```javascript
+timeline.addTrack({
+    duration: 5000,
+    onUpdate: (t, p) => {
+        p = TWEEN.Easing.Quadratic.InOut(p);
+        div.style.left = `${1000 * p}px`;
+    }
+})
+```
 
 # TODO
 
