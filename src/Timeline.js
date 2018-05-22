@@ -4,6 +4,9 @@
  * @author Meng                                   *
  **************************************************/
 
+// @TODO 时间排序
+// @TODO 自动排序插入
+// @TODO 拆分动作保证顺序
 
 import Track from './Track';
 import { getTimeNow, raf, cancelRaf } from './utils';
@@ -21,6 +24,9 @@ const CONFIG_TIMELINE = {
 	maxStep: Infinity,
 	// 最大帧率限制
 	maxFPS: Infinity,
+
+	// @TODO: 保证每个节点的执行顺序
+	// orderGuarantee: true,
 };
 
 /**
@@ -51,6 +57,8 @@ export default class Timeline {
 		this.running = false;
 
 		this.cbkEnd = [];
+
+		// this._ticks = []; // 把需要执行的tick排序执行（orderGuarantee）
 
 		this._timeBeforeHidden = 0;
 		this._timeBeforePaused = 0;
@@ -119,7 +127,8 @@ export default class Timeline {
 				this.running = false;
 				// 以免track在尾部得不到调用
 				this.onTimeUpdate && this.onTimeUpdate(this);
-				for (let i = this.tracks.length - 1; i >= 0; i--) {
+				// for (let i = this.tracks.length - 1; i >= 0; i--) {
+				for (let i = 0; i < this.tracks.length; i++) {
 					this.tracks[i].tick(this.currentTime);
 				}
 				// this.stop()
@@ -131,7 +140,8 @@ export default class Timeline {
 		this.onTimeUpdate && this.onTimeUpdate(this);
 
 		// 逐个轨道处理
-		for (let i = this.tracks.length - 1; i >= 0; i--) {
+		// for (let i = this.tracks.length - 1; i >= 0; i--) {
+		for (let i = 0; i < this.tracks.length; i++) {
 			this.tracks[i].tick(this.currentTime);
 		}
 
