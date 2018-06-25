@@ -37,7 +37,7 @@ if (process.env.NODE_ENV === 'production') {
     console.log("publishing");
 
     entry = {
-        Timeline: [path.resolve("./src/Timeline.js")],
+        Timeline: [path.resolve("./src/index.js")],
     };
 
     plugins = [

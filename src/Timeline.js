@@ -99,7 +99,7 @@ export default class Timeline {
 		if (time === undefined) {
 			const currentTime = this._getTimeNow() - this.referenceTime;
 			// FPS限制
-			if (currentTime - this.currentTime < this.minFrame) {
+			if (!singleStep && currentTime - this.currentTime < this.minFrame) {
 				this.animationFrameID = raf(() => this.tick());
 				return this;
 			}

@@ -1,3 +1,6 @@
-import Timeline from '../src/Timeline'
+const G = typeof window !== 'undefined' ? window : self;
 
-window.Timeline = Timeline;
+import Timeline from '../src/index'
+
+G.Timeline = Timeline;
+G.ShadowTimeline = Timeline.ShadowTimeline;

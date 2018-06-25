@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<title>同步测试</title>
+</head>
+<body>
+<script src="/static/import.demo.js" charset="utf-8"></script>
+<script type="text/javascript">
+
+const worker = new Worker('/static/parallel.worker.demo.js')
+// const worker2 = new Worker('/static/parallel.worker.demo.js')
+
+const timeline = new Timeline.OriginTimeline({
+    pauseWhenInvisible: true,
+    duration: Infinity,
+    maxStep: 100,
+    maxFPS: 30,
+
+    // shadows: [worker],
+    shadows: [worker, worker],
+    // shadows: [worker, worker, worker2, worker2],
+    id: 't_0'
+})
+
+// timeline.addTrack({
+//     duration: 500,
+//     onStart: () => {console.log(timeline.currentTime);},
+//     // onUpdate: (time, p) => { console.log(timeline.currentTime) },
+//     onUpdate: (time, p) => { document.body.innerHTML = time },
+//     loop: true,
+// })
+
+timeline.addTrack({
+    duration: 2000,
+    onUpdate: (t, p) => {
+        console.log('origin', t, p, timeline.getTime())
+    }
+})
+
+timeline.play()
+
+// worker.postMessage({a: 123})
+
+</script>
+</body>
+</html>
