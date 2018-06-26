@@ -6,13 +6,15 @@
 >
 > Keep everything happen at the right time.
 
+在一个Timeline中管理所有的动画和事件，WebMedia-like接口，致力于稳定、流畅地实现复杂动画并易于调试。
 
+**支持多线程、multi-context同步。**
 
 # 安装
 
 `tnpm i --save @ali/Timeline`
 
-当前版本: `0.5.0`
+当前版本: `0.6.1`
 
 支持环境: `Dom环境`、`Web Worker`、`node`、`electron`
 
@@ -26,7 +28,7 @@ const timeline = new Timeline({
     autoRecevery: true, // 是否自动回收结束的track轨道
 })
 
-timeline.play();
+timeline.play()
 
 timeline.addTrack({
     startTime: timeline.currentTime + 500, // 开始时间
@@ -35,6 +37,48 @@ timeline.addTrack({
     onStart: (time) => {console.log('start')}, // 起始回调
     onEnd: (time) => {console.log('end')}, // 结束回调
     onUpdate: (time, p) => {console.log('update', time, p)}, // 更新回调
+})
+```
+
+---
+
+# 多线程同步
+
+```javascript
+// 主线程
+
+const worker = new Worker('worker.js')
+
+const timeline = new Timeline.OriginTimeline({
+    shadows: [worker],
+    id: 't_0',
+})
+
+timeline.addTrack({
+    duration: 2000,
+    onUpdate: (t, p) => {
+        console.log('origin', t, p, timeline.getTime())
+    }
+})
+
+timeline.play()
+```
+
+```javascript
+// worker.js
+
+importScripts('/path/to/Timeline.js')
+
+const timeline = new Timeline.ShadowTimeline({
+    port: self,
+    id: 't_0',
+})
+
+timeline.addTrack({
+    duration: 2000,
+    onUpdate: (t, p) => {
+        console.log('shadow', t, p, timeline.getTime())
+    }
 })
 ```
 
@@ -138,6 +182,52 @@ timeline.addTrack({
 - onUpdate,     过程会掉，参数：time, p 其中p为该轨道当前进度(0~1)
 - onInit,       首次开始前的回调，无论loop与否都只会触发一次
 - alive,        **废弃** 如需要删除该track，只需要将alive置为false，该track就不会再执行，会在timeline执行recovery时被清除
+
+
+## **OriginTimeline**
+
+主线程中的Master，会主动同步所有Slave的行为。
+
+### `constructor`
+
+- Timeline所有配置项
+- shadows Array[Worker|WorkerGlobalScope|MessagePort]
+    - 与shadowTimeline通讯的接口，必须为数组
+    - 一个context中可以放多个Shadow
+    - 数组长度必须与Shadow个数相等
+- id
+    - 分配ID，作为标识来给Origin和Shadow配对
+
+### properties
+
+- 同Timeline
+
+### methods
+
+- 同Timeline
+
+## **ShadowTimeline**
+
+Worker中的Slave，被Master同步。一个Origin可以拥有多个Shadow。
+
+### `constructor`
+
+- 配置项无效，会从Origin同步
+- port Worker|WorkerGlobalScope|MessagePort
+    - 与Origin通讯的接口
+- id
+    - 分配ID，作为标识来给Origin和Shadow配对
+
+### properties
+
+- 同Timeline
+- running 会永远返回false
+
+### methods
+
+- 同Timeline
+- 不可以调用play|tick|seek|stop|pause|resume这些控制方法
+- Shadow的行为由Origin控制，不应自己控制
 
 ---
 
