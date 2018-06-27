@@ -47,6 +47,8 @@ export default class ShadowTimeline extends Timeline {
                 if (data.__timeline_type === 'init') {
                     // console.log('接受分配', data);
                     // 占用该port
+                    e.preventDefault();
+                    e.stopPropagation();
                     e.stopImmediatePropagation(); // IE 9
                     // data.__timeline_port_taken = true;
                     this.shadow_id = data.__timeline_shadow_id;

@@ -14,7 +14,7 @@
 
 `tnpm i --save @ali/Timeline`
 
-当前版本: `0.6.1`
+当前版本: `0.6.4`
 
 支持环境: `Dom环境`、`Web Worker`、`node`、`electron`
 

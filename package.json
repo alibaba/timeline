@@ -1,6 +1,6 @@
 {
   "name": "@ali/Timeline",
-  "version": "0.6.1",
+  "version": "0.6.4",
   "author": "西萌",
   "description": "时间线系统",
   "main": "dist/Timeline.js",
@@ -25,6 +25,7 @@
   },
   "scripts": {
     "start": "node server.js",
-    "dist": "NODE_ENV=production webpack --progress --colors"
+    "dist": "NODE_ENV=production webpack --progress --colors",
+    "pub": "npm run dist && tnpm pub"
   }
 }

@@ -23,3 +23,10 @@ timeline2.addTrack({
         console.log('shadow2', t, p, timeline.getTime())
     }
 })
+
+//
+// self.addEventListener('message', e => {
+//     if (e.data.name === 'a') {
+//         console.log('#aaaaa', e);
+//     }
+// })

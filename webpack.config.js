@@ -56,6 +56,7 @@ if (process.env.NODE_ENV === 'production') {
     };
 
     mode = 'production';
+    // devtool = "inline-source-map";
     // mode = 'development';
 
 } else {

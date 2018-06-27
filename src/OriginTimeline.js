@@ -51,10 +51,10 @@ export default class OriginTimeline extends Timeline {
                         referenceTime: this.referenceTime,
                     },
                 };
-                const f = () => {
-                    shadow.waiting = true;
-                    shadow.port.postMessage(msg);
-                };
+                // const f = () => {
+                //     shadow.waiting = true;
+                //     shadow.port.postMessage(msg);
+                // };
 
                 if (shadow.waiting) {
                     // 任务执行中，需要排队
@@ -64,14 +64,16 @@ export default class OriginTimeline extends Timeline {
                         // console.log('等待队列满，将舍弃过旧的消息')
                         shadow.waitQueue.shift();
                     }
-                    shadow.waitQueue.push(f);
+                    shadow.waitQueue.push(msg);
                 } else {
                     // @TODO 是否可能在排队却没有任务在执行的情况？
                     if (!shadow.waiting && shadow.waitQueue.length)
                         console.error('在排队却没有任务在执行!!!');
 
                     // 空闲状态，直接执行
-                    f();
+                    // f();
+                    shadow.waiting = true;
+                    shadow.port.postMessage(msg);
                 }
             });
         };
@@ -97,9 +99,17 @@ export default class OriginTimeline extends Timeline {
                  e.data.__timeline_shadow_id !== shadow.id
             ) return;
 
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation(); // IE 9
+
             if (e.data.__timeline_type === 'done') {
                 shadow.waiting = false;
-                shadow.waitQueue.length && shadow.waitQueue.shift()();
+                // shadow.waitQueue.length && shadow.waitQueue.shift()();
+                if (shadow.waitQueue.length) {
+                    shadow.waiting = true;
+                    shadow.port.postMessage(shadow.waitQueue.shift());
+                }
             }
         });
 

@@ -11,6 +11,12 @@
 const worker = new Worker('/static/parallel.worker.demo.js')
 // const worker2 = new Worker('/static/parallel.worker.demo.js')
 
+// const timeline = new Timeline({
+//     pauseWhenInvisible: true,
+//     duration: Infinity,
+//     maxStep: 100,
+// })
+
 const timeline = new Timeline.OriginTimeline({
     pauseWhenInvisible: true,
     duration: Infinity,
@@ -40,7 +46,10 @@ timeline.addTrack({
 
 timeline.play()
 
-// worker.postMessage({a: 123})
+// const a = new Float32Array(10)
+// worker.postMessage({
+//     name: 'a'
+// }, [a.buffer])
 
 </script>
 </body>
