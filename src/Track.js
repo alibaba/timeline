@@ -26,9 +26,10 @@ export default class Track {
 	 * @param {Func} onEnd - 结束时的回调，loop的话每次结束都会调用
 	 * @param {Func} onUpdate - 过程回调
 	 * @param {Func} onInit - 首次开始时的回调
+	 * @param {Func} easing - easing - 缓动函数 p => p
 	 */
 	constructor({ id, loop, startTime = 0, endTime, duration,
-				  onStart, onEnd, onUpdate, onInit, }) {
+				  onStart, onEnd, onUpdate, onInit, easing, }) {
 		this.id = id !== undefined ? id : '';
 		this.uuid = '' + Math.random() + __trackUUID ++;
 
@@ -39,6 +40,7 @@ export default class Track {
 		this.onUpdate = onUpdate;
 		this.onInit = onInit;
 		this.loop = loop;
+		this.easing = easing;
 
 		// 计算duration和endTime，处理endTime与duration不一致的情况
 
@@ -160,7 +162,10 @@ export default class Track {
 				this.onStart && this.onStart(time);
 			}
 			if (this.onUpdate) {
-				this.onUpdate(time, (time - this._startTime) / this._duration);
+				let p = (time - this._startTime) / this._duration;
+				// 缓动
+				if (this.easing) { p = this.easing(p); }
+				this.onUpdate(time, p);
 			}
 		}
 	}

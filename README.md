@@ -10,11 +10,13 @@
 
 **支持多线程、multi-context同步。**
 
+Timeline的设计原则是：无论何时从任意时间跳到任意时间，总能保证最终结果的正确。
+
 # 安装
 
 `tnpm i --save @ali/Timeline`
 
-当前版本: `0.6.4`
+当前版本: `0.6.5`
 
 支持环境: `Dom环境`、`Web Worker`、`node`、`electron`
 
@@ -184,7 +186,8 @@ timeline.addTrack({
 - onEnd,        终止回调，参数：time
 - onUpdate,     过程会掉，参数：time, p 其中p为该轨道当前进度(0~1)
 - onInit,       首次开始前的回调，无论loop与否都只会触发一次
-- alive,        **废弃** 如需要删除该track，只需要将alive置为false，该track就不会再执行，会在timeline执行recovery时被清除
+- easing,       缓动函数，等同于在onUpdate中对p进行处理，起始值和终点值应该为0和1
+- alive,        **废弃** ~~如需要删除该track，只需要将alive置为false，该track就不会再执行，会在timeline执行recovery时被清除~~
 
 
 ## **OriginTimeline**
@@ -250,6 +253,8 @@ Worker中的Slave，被Master同步。一个Origin可以拥有多个Shadow。
 
 - 由于(页面卡顿|用户来回切页面|轨道duration过短)等原因，可能会造成一些track的时间被整体跳过，timeline为了保证**最终结果正确**，依然会执行该track的所有回调。即：每个track的所有回调至少都会被调用一次，来保证最终结果的正确。
 
+- 请避免Track之前相互依赖，如果多个Track被跳过，Timeline将按照Track被add的顺序依次处理，无法保证不同Track之间时间点的顺序正确
+
 - 多线程开发中，OriginTimeline和ShadowTimeline之间的同步会存在延迟(1ms以内)，如果ShadowTimeline被阻塞则会出现两个线程节奏不同步，Timeline会自动处理节奏不同步的问题，不会造成请求累积，保证最终结果的正确（最近一次指令总会执行），但是会出现<=两帧的延迟。
 
 - 想使用Tween的缓动函数？很简单：
@@ -262,10 +267,24 @@ timeline.addTrack({
         div.style.left = `${1000 * p}px`;
     }
 })
+
+// or
+
+timeline.addTrack({
+    duration: 5000,
+    easing: TWEEN.Easing.Quadratic.InOut,
+    onUpdate: (t, p) => {
+        div.style.left = `${1000 * p}px`;
+    },
+})
+
 ```
+
 
 # TODO
 
 - [ ] 加入循环次数的处理
 
 - [ ] 加入循环间隔的处理
+
+- [ ] 加入缓动函数接口
