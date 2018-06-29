@@ -23,6 +23,8 @@
 # 基本使用
 
 ```javascript
+import Timeline from '@ali/Timeline'
+
 const timeline = new Timeline({
     duration: Infinity, // 整个timeline的时长，超过后会停止或循环
     autoRecevery: true, // 是否自动回收结束的track轨道
@@ -102,8 +104,8 @@ timeline.addTrack({
     - 最长帧时间限制，如果帧步长超过这个值，则会被压缩到这个值,
     - 用于避免打断点时继续计时，端点结束后时间突进
 - maxFPS: Infinity
-    - 最大帧率，如果你的程序在高FPS下运行不够稳定，可以让TimeLine主动降帧
-    - ** 建议将这个值设为浏览器帧率（通常是60）的因数，例如30、20、10
+    - 最大帧率，如果你的程序在高FPS下运行不够稳定，可以让TimeLine主动降帧，因为 **稳定的低帧率总比不稳定的高帧率看起来更流畅!**
+    - ** 建议将这个值设为浏览器帧率（通常是60）的因数，例如60、30、20、10
 
 ### methods
 
@@ -126,12 +128,13 @@ timeline.addTrack({
 - `recovery()`
     - 回收无用的track
 
-- `addTrack(trackConfig)`
+- `addTrack(trackConfig)` : Track
     - 创建并添加一个轨道，详见Track
 
-- `stopTrack({uuid})`
+- `stopTrack(Track)`
     - 停掉一个track，将其alive置为false，
     - 如果还未播放则不会在播放，如果正在播放则会停止，会被下一次recovery执行时被删掉
+    - 也可以只传入Track的UUID stopTrack({uuid})
 
 - `getTracksByID(id)`
     - 返回一个id匹配的track的数组
@@ -205,6 +208,8 @@ timeline.addTrack({
 ### methods
 
 - 同Timeline
+- `addShadow(MessagePort)`
+    - 添加一个ShadowTimeline，参数为 Worker|WorkerGlobalScope|MessagePort
 
 ## **ShadowTimeline**
 
@@ -213,10 +218,8 @@ Worker中的Slave，被Master同步。一个Origin可以拥有多个Shadow。
 ### `constructor`
 
 - 配置项无效，会从Origin同步
-- port Worker|WorkerGlobalScope|MessagePort
-    - 与Origin通讯的接口
-- id
-    - 分配ID，作为标识来给Origin和Shadow配对
+- port,     Worker|WorkerGlobalScope|MessagePort 与Origin通讯的接口
+- id,       分配ID，作为标识来与Origin配对
 
 ### properties
 
@@ -241,9 +244,13 @@ Worker中的Slave，被Master同步。一个Origin可以拥有多个Shadow。
 
 # 注意事项
 
+- *l小写*
+
 - Timeline基于requestAnimationFrame，精度限制在raf的调用频率，通常为16ms或32ms
 
 - 由于(页面卡顿|用户来回切页面|轨道duration过短)等原因，可能会造成一些track的时间被整体跳过，timeline为了保证**最终结果正确**，依然会执行该track的所有回调。即：每个track的所有回调至少都会被调用一次，来保证最终结果的正确。
+
+- 多线程开发中，OriginTimeline和ShadowTimeline之间的同步会存在延迟(1ms以内)，如果ShadowTimeline被阻塞则会出现两个线程节奏不同步，Timeline会自动处理节奏不同步的问题，不会造成请求累积，保证最终结果的正确（最近一次指令总会执行），但是会出现<=两帧的延迟。
 
 - 想使用Tween的缓动函数？很简单：
 

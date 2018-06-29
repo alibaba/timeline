@@ -145,7 +145,7 @@ export default class Timeline {
 			this.tracks[i].tick(this.currentTime);
 		}
 
-        // 自动回收
+		// 自动回收
 		if (this.config.autoRecevery) {
 			this.recovery();
 		}
@@ -234,6 +234,7 @@ export default class Timeline {
 	// 清理掉整个Timeline，目前没有发现需要单独清理的溢出点
 	destroy() {
 		this.stop();
+		this.tracks = [];
 	}
 
 	/**
