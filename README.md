@@ -16,7 +16,7 @@ Timeline的设计原则是：无论何时从任意时间跳到任意时间，总
 
 `tnpm i --save @ali/Timeline`
 
-当前版本: `0.6.5`
+当前版本: `0.6.6`
 
 支持环境: `Dom环境`、`Web Worker`、`node`、`electron`
 
@@ -108,6 +108,9 @@ timeline.addTrack({
 - maxFPS: Infinity
     - 最大帧率，如果你的程序在高FPS下运行不够稳定，可以让TimeLine主动降帧，因为 **稳定的低帧率总比不稳定的高帧率看起来更流畅!**
     - ** 建议将这个值设为浏览器帧率（通常是60）的因数，例如60、30、20、10
+- openStats: false
+    - 是否打开性能面板
+    - 在外部使用stats.js测到的帧率和帧时间是不准确的，因此timeline在内部封装了stats.js，直接打开即可
 
 ### methods
 

@@ -10,6 +10,7 @@
 
 import Track from './Track';
 import { getTimeNow, raf, cancelRaf } from './utils';
+import Stats from './plugins/stats';
 
 // 默认配置
 const CONFIG_TIMELINE = {
@@ -27,6 +28,9 @@ const CONFIG_TIMELINE = {
 
 	// @TODO: 保证每个节点的执行顺序
 	// orderGuarantee: true,
+
+	// 开启性能面板
+	openStats: false,
 };
 
 /**
@@ -64,6 +68,13 @@ export default class Timeline {
 		this._timeBeforePaused = 0;
 
 		this._timeoutID = 0; // 用于给setTimeout和setInterval分配ID
+
+
+		if (this.config.openStats) {
+			this.stats = new Stats();
+			this.stats.showPanel(0);
+			document.body.appendChild(this.stats.dom);
+		}
 
 		// 页面不可见时暂停计时
 		// 非浏览器主线程环境则忽略
@@ -136,6 +147,8 @@ export default class Timeline {
 			}
 		}
 
+		if (this.stats) this.stats.begin()
+
 		// 回调
 		this.onTimeUpdate && this.onTimeUpdate(this);
 
@@ -149,6 +162,8 @@ export default class Timeline {
 		if (this.config.autoRecevery) {
 			this.recovery();
 		}
+
+		if (this.stats) this.stats.end()
 
 		if (singleStep) {
 			this.running = false;
