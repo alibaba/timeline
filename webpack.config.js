@@ -96,22 +96,12 @@ var config = {
                 include: /src|demo/,
                 loader: 'babel-loader',
                 options: {
-                    presets: ['es2015', 'stage-0'],
+                    presets: ['env'],
+                    plugins: [
+                        "transform-object-rest-spread",
+                    ]
                 }
-            },
-            {
-                test: /\.(glsl|vs|fs)$/,
-                include: /src|demo/,
-                use: 'webpack-glsl-loader'
-            },
-            {
-                test: /\.css$/,
-                include: /src/,
-                use: [
-                    'style-loader',
-                    'css-loader',
-                ]
-            },
+            }
         ]
     },
 }

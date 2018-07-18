@@ -13,7 +13,7 @@ import { getTimeNow, raf, cancelRaf } from './utils';
 import Stats from './plugins/stats';
 
 // 默认配置
-const CONFIG_TIMELINE = {
+const CONFIG_DEFAULT = {
 	duration: Infinity,
 	loop: false,
 	autoRecevery: false,
@@ -41,7 +41,7 @@ export default class Timeline {
 	// 创建一个Timeline实例，建议全局使用一个实例来方便同一控制所有行为与动画
 	constructor(config) {
 		this.config = {
-			...CONFIG_TIMELINE,
+			...CONFIG_DEFAULT,
 			...config,
 		};
 
