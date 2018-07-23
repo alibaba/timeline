@@ -44,6 +44,7 @@ export default class Timeline {
 			...CONFIG_DEFAULT,
 			...config,
 		};
+		this.isTimeline = true;
 
 		this.duration = this.config.duration;
 		this.loop = this.config.loop;
@@ -133,6 +134,9 @@ export default class Timeline {
 				}
 			}
 			if (this.loop) {
+				// @TODO 无法使用 seek(this.currentTime % this.duration)
+				// 		 因为会导致onInit混乱
+				// 		 onInit的逻辑依赖于循环时回到Track的前面
 				this.seek(0); // 保证 onInit 和 onStart 会被触发
 			} else {
 				this.running = false;
@@ -228,6 +232,7 @@ export default class Timeline {
 	 * @param {Object} props 配置项，详见Track.constructor
 	 * @return {Track} 所创建的Track
 	 */
+	add(props) {this.addTrack(props)}
 	addTrack(props) {
 		const track = new Track(props);
 		track._safeClip(this.duration);
@@ -245,6 +250,9 @@ export default class Timeline {
 			}
 		}
 	}
+
+	// @TODO remove
+	removeTrack(track) {console.warn('removeTrack TODO');}
 
 	// 清理掉整个Timeline，目前没有发现需要单独清理的溢出点
 	destroy() {

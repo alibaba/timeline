@@ -32,6 +32,7 @@ export default class Track {
 				  onStart, onEnd, onUpdate, onInit, easing, }) {
 		this.id = id !== undefined ? id : '';
 		this.uuid = '' + Math.random() + __trackUUID ++;
+		this.isTrack = true;
 
 		this._startTime = startTime;
 		this._endTime = endTime;
@@ -41,6 +42,9 @@ export default class Track {
 		this.onInit = onInit;
 		this.loop = loop;
 		this.easing = easing;
+
+		// 子级Track
+		this.tracks = [];
 
 		// 计算duration和endTime，处理endTime与duration不一致的情况
 
@@ -148,16 +152,19 @@ export default class Track {
 				this.onUpdate && this.onUpdate(time, 1);
 				this.onEnd && this.onEnd(time);
 				this.started = true;
-			} else {
-                // 过期而且不循环（循环的情况在上面处理）
-				this.alive = false;
 			}
+			// 过期而且不循环（循环的情况在上面处理）
+			this.alive = false;
 
 		} else {
 			// Track运行中
+			if (!this.inited) {
+				this.onInit && this.onInit(time);
+				this.inited = true;
+			}
 			if (!this.running) {
 				this.running = true;
-				this.inited = false;
+				// this.inited = false;
 				this.started = true;
 				this.onStart && this.onStart(time);
 			}
@@ -172,7 +179,7 @@ export default class Track {
 
 	// 避免和时间线起点对齐导致onStart不能正确触发
 	_safeClip(end) {
-		if (this._startTime === 0) {
+		if (this._startTime <= 0) {
 			this._startTime = 0.5;
 		}
 		if (this._startTime >= end) {
