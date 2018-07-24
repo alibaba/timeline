@@ -7,6 +7,7 @@
 // @TODO 时间排序
 // @TODO 自动排序插入
 // @TODO 拆分动作保证顺序
+// @TODO 所有的操作都应该在tick中执行，保证timeline之间可以同步状态
 
 import Track from './Track';
 import { getTimeNow, raf, cancelRaf } from './utils';
@@ -61,7 +62,7 @@ export default class Timeline {
 
 		this.running = false;
 
-		this.cbkEnd = [];
+		// this.cbkEnd = [];
 
 		// this._ticks = []; // 把需要执行的tick排序执行（orderGuarantee）
 
@@ -70,6 +71,9 @@ export default class Timeline {
 
 		this._timeoutID = 0; // 用于给setTimeout和setInterval分配ID
 
+		this.shadows = [];
+		this.id = this.config.id;
+		(this.config.shadows || []).forEach(port => this.addShadow(port));
 
 		if (this.config.openStats) {
 			this.stats = new Stats();
@@ -92,6 +96,67 @@ export default class Timeline {
 				}
 			});
 		}
+
+		// onEnd回调需要特殊处理
+		this.onEnd = () => {
+			this.shadows.forEach(shadow => {
+				// @TODO 清掉缓存中的请求，
+				// onEnd优先级高，而且后面不能有延迟的请求
+				shadow.port.postMessage({
+					__timeline_type: 'end',
+					__timeline_id: this.config.id,
+					__timeline_shadow_id: shadow.shadow_id,
+					__timeline_msg: {
+						currentTime: this.currentTime,
+						duration: this.duration,
+						referenceTime: this.referenceTime,
+					},
+				});
+			});
+		};
+
+		// 更新shadow时间
+		// @TODO 似乎和Track等效
+		this.onTimeUpdate = timeline => {
+			// 同步Timeline
+
+			this.shadows.forEach(shadow => {
+				const msg = {
+					__timeline_type: 'tick',
+					__timeline_id: this.id,
+					__timeline_shadow_id: shadow.id,
+					__timeline_msg: {
+						currentTime: this.currentTime,
+						duration: this.duration,
+						referenceTime: this.referenceTime,
+					},
+				};
+				// const f = () => {
+				//     shadow.waiting = true;
+				//     shadow.port.postMessage(msg);
+				// };
+
+				if (shadow.waiting) {
+					// 任务执行中，需要排队
+					// console.log('任务执行中，需要排队', shadow.id)
+					if (shadow.waitQueue.length >= MAX_WAIT_QUEUE) {
+						// 队伍过长，挤掉前面的
+						// console.log('等待队列满，将舍弃过旧的消息')
+						shadow.waitQueue.shift();
+					}
+					shadow.waitQueue.push(msg);
+				} else {
+					// @TODO 是否可能在排队却没有任务在执行的情况？
+					if (!shadow.waiting && shadow.waitQueue.length)
+						console.error('在排队却没有任务在执行!!!');
+
+					// 空闲状态，直接执行
+					// f();
+					shadow.waiting = true;
+					shadow.port.postMessage(msg);
+				}
+			});
+		};
 	}
 
 	// 播放结束的回调
@@ -101,17 +166,22 @@ export default class Timeline {
 	// 相对时间，只能用来计算差值
 	_getTimeNow() { return getTimeNow(); }
 
+	// /**
+	// * 每帧调用
+	// * @param  {Bool} singleStep 单步逐帧播放
+	// * @param  {Num}  time  opt, 跳转到特定时间
+	// */
+	// tick(singleStep = false, time) {
 	/**
 	* 每帧调用
-	* @param  {Bool} singleStep 单步逐帧播放
-	* @param  {Num}  time  opt, 跳转到特定时间
+	* @param  {Num}  time  opt, 跳转到特定时间, 单步逐帧播放
 	*/
-	tick(singleStep = false, time) {
+	tick(time) {
 
 		if (time === undefined) {
 			const currentTime = this._getTimeNow() - this.referenceTime;
 			// FPS限制
-			if (!singleStep && currentTime - this.currentTime < this.minFrame) {
+			if (currentTime - this.currentTime < this.minFrame) {
 				this.animationFrameID = raf(() => this.tick());
 				return this;
 			}
@@ -128,11 +198,11 @@ export default class Timeline {
 
 		// 播放完毕
 		if (this.currentTime > this.duration) {
-			if (this.running) {
-				for (let i = this.cbkEnd.length - 1; i >= 0; i--) {
-					this.cbkEnd[i]();
-				}
-			}
+			// if (this.running) {
+			// 	for (let i = this.cbkEnd.length - 1; i >= 0; i--) {
+			// 		this.cbkEnd[i]();
+			// 	}
+			// }
 			if (this.loop) {
 				// @TODO 无法使用 seek(this.currentTime % this.duration)
 				// 		 因为会导致onInit混乱
@@ -141,7 +211,7 @@ export default class Timeline {
 			} else {
 				this.running = false;
 				// 以免track在尾部得不到调用
-				this.onTimeUpdate && this.onTimeUpdate(this);
+				// this.onTimeUpdate && this.onTimeUpdate(this);
 				// for (let i = this.tracks.length - 1; i >= 0; i--) {
 				for (let i = 0; i < this.tracks.length; i++) {
 					this.tracks[i].tick(this.currentTime);
@@ -169,9 +239,9 @@ export default class Timeline {
 
 		if (this.stats) this.stats.end()
 
-		if (singleStep) {
+		if (time !== undefined) {
 			this.running = false;
-			return;
+			return this;
 		}
 		this.animationFrameID = raf(() => this.tick());
 		return this;
@@ -217,9 +287,15 @@ export default class Timeline {
 		return this;
 	}
 
+	// 清理掉整个Timeline，目前没有发现需要单独清理的溢出点
+	destroy() {
+		this.stop();
+		this.tracks = [];
+	}
+
 	// 垃圾回收
 	recovery() {
-        // 倒序删除，以免数组索引混乱
+		// 倒序删除，以免数组索引混乱
 		for (let i = this.tracks.length - 1; i >= 0; i--) {
 			if (!this.tracks[i].alive) {
 				this.tracks.splice(i, 1);
@@ -232,14 +308,36 @@ export default class Timeline {
 	 * @param {Object} props 配置项，详见Track.constructor
 	 * @return {Track} 所创建的Track
 	 */
-	add(props) {this.addTrack(props)}
-	addTrack(props) {
-		const track = new Track(props);
-		track._safeClip(this.duration);
-		track.onInit && track.onInit(this.currentTime);
-		this.tracks.push(track);
-		return track;
+	addTrack(props) {return this.add(props);}
+	add(props) {
+		if (props.isTimeline) {
+			props.tracks.push(props)
+			props.parent = this;
+			props.onInit && props.onInit(this.currentTime);
+			return props;
+		} else if (props.isTrack) {
+			const track = props;
+			track._safeClip(this.duration);
+			if (track.parent) {
+				track.parent.remove(track);
+			}
+			track.parent = this;
+			track.onInit && track.onInit(this.currentTime);
+			this.tracks.push(track);
+			return track;
+		} else {
+			const track = new Track(props);
+			track._safeClip(this.duration);
+			track.parent = this;
+			track.onInit && track.onInit(this.currentTime);
+			this.tracks.push(track);
+			return track;
+		}
 	}
+
+	// @TODO remove
+	removeTrack(track) {return this.remove(track);}
+	remove(track) {console.warn('remove TODO');}
 
 	// 停掉指定Track
 	stopTrack(track) {
@@ -249,15 +347,6 @@ export default class Timeline {
 				this.tracks[i].alive = false;
 			}
 		}
-	}
-
-	// @TODO remove
-	removeTrack(track) {console.warn('removeTrack TODO');}
-
-	// 清理掉整个Timeline，目前没有发现需要单独清理的溢出点
-	destroy() {
-		this.stop();
-		this.tracks = [];
 	}
 
 	/**
@@ -273,6 +362,10 @@ export default class Timeline {
 			}
 		}
 		return tracks;
+	}
+
+	clear() {
+		this.tracks = [];
 	}
 
 	// 重写Dom标准中的 setTimeout 和 setInterval
@@ -318,4 +411,59 @@ export default class Timeline {
 
 	// NOTE: 暂时不鼓励在外部创建Track
 	// static Track = Track
+
+	addShadow(port) {
+		if ((!this.id && this.id !== 0))
+			throw new Error('你需要给当前Timeline指定ID才能够为其添加shadow')
+
+		const shadow = {
+			port,
+			// 等待队列
+			waitQueue: [],
+			// 当前有任务在等待返回
+			waiting: false,
+			// 一对多，需要一个额外的ID
+			id: performance.now() + Math.random(),
+		};
+
+		// 回执
+		// port.onmessage = e => {
+		port.addEventListener('message', e => {
+			// console.log(e);
+			if (!e.data ||
+				 e.data.__timeline_id !== this.id ||
+				 e.data.__timeline_shadow_id !== shadow.id
+			) return;
+
+			e.preventDefault();
+			e.stopPropagation();
+			e.stopImmediatePropagation(); // IE 9
+
+			if (e.data.__timeline_type === 'done') {
+				shadow.waiting = false;
+				// shadow.waitQueue.length && shadow.waitQueue.shift()();
+				if (shadow.waitQueue.length) {
+					shadow.waiting = true;
+					shadow.port.postMessage(shadow.waitQueue.shift());
+				}
+			}
+		});
+
+		// 同步初始状态
+		port.postMessage({
+			__timeline_type: 'init',
+			__timeline_id: this.config.id,
+			// 分配端口ID
+			__timeline_shadow_id: shadow.id,
+			__timeline_msg: {
+				...this.config,
+				shadows: [],
+			},
+			// __timeline_timenow: this.referenceTime,
+		});
+
+		this.shadows.push(shadow);
+	}
+
+
 }

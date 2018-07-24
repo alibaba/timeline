@@ -16,7 +16,7 @@ Timeline的设计原则是：无论何时从任意时间跳到任意时间，总
 
 `tnpm i --save @ali/Timeline`
 
-当前版本: `0.6.6`
+当前版本: `0.6.9`
 
 支持环境: `Dom环境`、`Web Worker`、`node`、`electron`
 
@@ -111,6 +111,13 @@ timeline.addTrack({
 - openStats: false
     - 是否打开性能面板
     - 在外部使用stats.js测到的帧率和帧时间是不准确的，因此timeline在内部封装了stats.js，直接打开即可
+- shadows Array[Worker|WorkerGlobalScope|MessagePort]
+    - 与shadowTimeline通讯的接口，必须为数组
+    - 一个context中可以放多个Shadow
+    - 数组长度必须与Shadow个数相等
+- id
+    - 分配ID，作为标识来给Origin和Shadow配对
+    - 如果该项为空，将无法为其添加shadow
 
 ### methods
 
@@ -144,6 +151,8 @@ timeline.addTrack({
 - `getTracksByID(id)`
     - 返回一个id匹配的track的数组
 
+- `addShadow(MessagePort)`
+    - 添加一个ShadowTimeline，参数为 Worker|WorkerGlobalScope|MessagePort
 
 **以下接口行为与DOM标准保持一致，但是全部与timeline中的时间和行为对齐**
 
@@ -195,17 +204,12 @@ timeline.addTrack({
 
 ## **OriginTimeline**
 
-主线程中的Master，会主动同步所有Slave的行为。
+主线程中的Master，会主动同步所有Slave的行为。已合并入Timeline，请直接使用Timeline。
 
-### `constructor`
+<!-- ### `constructor`
 
 - Timeline所有配置项
-- shadows Array[Worker|WorkerGlobalScope|MessagePort]
-    - 与shadowTimeline通讯的接口，必须为数组
-    - 一个context中可以放多个Shadow
-    - 数组长度必须与Shadow个数相等
-- id
-    - 分配ID，作为标识来给Origin和Shadow配对
+
 
 ### properties
 
@@ -213,9 +217,8 @@ timeline.addTrack({
 
 ### methods
 
-- 同Timeline
-- `addShadow(MessagePort)`
-    - 添加一个ShadowTimeline，参数为 Worker|WorkerGlobalScope|MessagePort
+- 同Timeline -->
+
 
 ## **ShadowTimeline**
 

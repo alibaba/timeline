@@ -43,8 +43,12 @@ export default class Track {
 		this.loop = loop;
 		this.easing = easing;
 
+		// 保证只被add一次
+		this._taken = false;
+
 		// 子级Track
 		this.tracks = [];
+		this.children = this.tracks;
 
 		// 计算duration和endTime，处理endTime与duration不一致的情况
 
@@ -103,6 +107,29 @@ export default class Track {
 	get alive() { return this._alive; }
 	set alive(v) { this._alive = v; }
 
+	traverse(f) {
+		// 自己
+		f(this)
+		// children
+		if (!this.children || this.children.length === 0) return
+		this.children.forEach(c => c.traverse(f))
+	}
+
+	init(time) {
+		if (this.running) {
+			// NOTE: 避免终止位置不正确
+			this.onUpdate && this.onUpdate(this.endTime, 1);
+			this.onEnd && this.onEnd(this.endTime);
+		}
+
+		this.running = false;
+		this.started = false;
+
+		// this.inited = false;
+		this.onInit && this.onInit(time);
+		// this.inited = true;
+	}
+
 	tick(_time) {
 		if (!this.alive) { return }
 
@@ -113,6 +140,7 @@ export default class Track {
 			const newLoopTime = Math.floor((time - this._startTime) / this._duration);
 			time = (time - this._startTime) % this._duration + this._startTime;
 			if (this.loopTime !== newLoopTime) {
+				// 新的一轮循环
 				this.loopTime = newLoopTime;
 				this.onStart && this.onStart(time);
 				this.onUpdate && this.onUpdate(time, (time - this._startTime) / this._duration);
@@ -123,17 +151,17 @@ export default class Track {
 
 		if (time < this._startTime) {
 			// Track未开始
-			if (this.running) {
-				this.running = false;
-				// NOTE: 避免终止位置不正确
-				this.onUpdate && this.onUpdate(time, 1);
-				this.onEnd && this.onEnd(time);
-			}
-			if (!this.inited) {
-				this.onInit && this.onInit(time);
-				this.inited = true;
-				this.started = false;
-			}
+			// if (this.running) {
+			// 	this.running = false;
+			// 	// NOTE: 避免终止位置不正确
+			// 	this.onUpdate && this.onUpdate(time, 1);
+			// 	this.onEnd && this.onEnd(time);
+			// }
+			// if (!this.inited) {
+			// 	this.onInit && this.onInit(time);
+			// 	this.inited = true;
+			// 	this.started = false;
+			// }
 
 		} else if (time > this._endTime) {
 			// Track已结束
@@ -144,10 +172,10 @@ export default class Track {
 				this.onEnd && this.onEnd(time);
 			} else if (!this.started) {
 				// NOTE: 避免整个动画被跳过，起码要播一下最后一帧
-				if (!this.inited) {
-					this.onInit && this.onInit(time);
-					this.inited = true;
-				}
+				// if (!this.inited) {
+				// 	this.onInit && this.onInit(time);
+				// 	this.inited = true;
+				// }
 				this.onStart && this.onStart(time);
 				this.onUpdate && this.onUpdate(time, 1);
 				this.onEnd && this.onEnd(time);
@@ -158,10 +186,10 @@ export default class Track {
 
 		} else {
 			// Track运行中
-			if (!this.inited) {
-				this.onInit && this.onInit(time);
-				this.inited = true;
-			}
+			// if (!this.inited) {
+			// 	this.onInit && this.onInit(time);
+			// 	this.inited = true;
+			// }
 			if (!this.running) {
 				this.running = true;
 				// this.inited = false;
@@ -175,6 +203,67 @@ export default class Track {
 				this.onUpdate(time, p);
 			}
 		}
+	}
+
+	// 垃圾回收
+	recovery() {
+		// 倒序删除，以免数组索引混乱
+		for (let i = this.tracks.length - 1; i >= 0; i--) {
+			if (!this.tracks[i].alive) {
+				this.tracks.splice(i, 1);
+			}
+		}
+	}
+
+	/**
+	 * 根据配置创建一个Track
+	 * @param {Object} props 配置项，详见Track.constructor
+	 * @return {Track} 所创建的Track
+	 */
+	addTrack(props) {return this.add(props);}
+	add(props) {
+		if (props.isTimeline) {
+			props.tracks.push(props)
+		} else {
+			const track = new Track(props);
+			track._safeClip(this.duration);
+			track.onInit && track.onInit(this.currentTime);
+			this.tracks.push(track);
+			return track;
+		}
+	}
+
+	// @TODO remove
+	removeTrack(track) {return this.remove(track);}
+	remove(track) {console.warn('remove TODO');}
+
+	// 停掉指定Track
+	stopTrack(track) {
+		const uuid = track.uuid;
+		for (let i = this.tracks.length - 1; i >= 0 ; i--) {
+			if (this.tracks[i].uuid === uuid) {
+				this.tracks[i].alive = false;
+			}
+		}
+	}
+
+	/**
+	 * 根据ID获取Tracks
+	 * @param  {Number} id
+	 * @return {Array(Track)}
+	 */
+	getTracksByID(id) {
+		const tracks = [];
+		for (let i = 0; i < this.tracks.length; i++) {
+			if (this.tracks[i].id === id) {
+				tracks.push(this.tracks[i])
+			}
+		}
+		return tracks;
+	}
+
+	clear() {
+		this.tracks = [];
 	}
 
 	// 避免和时间线起点对齐导致onStart不能正确触发

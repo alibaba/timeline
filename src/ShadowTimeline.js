@@ -27,7 +27,7 @@ export default class ShadowTimeline extends Timeline {
                     this.currentTime = data.__timeline_msg.currentTime;
                     this.duration = data.__timeline_msg.duration;
                     this.referenceTime = data.__timeline_msg.referenceTime;
-                    super.tick(true, this.currentTime);
+                    super.tick(this.currentTime);
                     // @NOTE currentTime会是对的，referenceTime会乱掉
 
                     // 完成回执
