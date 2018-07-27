@@ -9,6 +9,7 @@ let __trackUUID = 0; // 避免uuid重复
 /**
  * Track 🚀 🚀 🚀
  * 轨道，代表时间线上的一个行为对象，有自己的startTime, duration等特性
+ * @NOTE started和running只是为了判断一种情况：整个track根本没开始就完全被跳过
  * TODO: startTime === endTime的处理
  * TODO: startTime and endTime过于接近的问题
  * TODO: onP
@@ -25,7 +26,7 @@ export default class Track {
 	 * @param {Func} onStart - 开始时的回调，loop的话每次开始都会调用
 	 * @param {Func} onEnd - 结束时的回调，loop的话每次结束都会调用
 	 * @param {Func} onUpdate - 过程回调
-	 * @param {Func} onInit - 首次开始时的回调
+	 // * @param {Func} onInit - 首次开始时的回调
 	 * @param {Func} easing - easing - 缓动函数 p => p
 	 */
 	constructor({ id, loop, startTime = 0, endTime, duration,
@@ -43,12 +44,15 @@ export default class Track {
 		this.loop = loop;
 		this.easing = easing;
 
+		if (this.easing && (this.easing(0) !== 0 || this.easing(1) !== 1) ) {
+			console.warn('ease函数错误，（easing(0) should be 0, easing(1) should be 1）');
+		}
+
+		this.currentTime = 0; // timeLocal
+
 		// 保证只被add一次
 		this._taken = false;
 
-		// 子级Track
-		this.tracks = [];
-		this.children = this.tracks;
 
 		// 计算duration和endTime，处理endTime与duration不一致的情况
 
@@ -76,7 +80,7 @@ export default class Track {
 		}
 
 		this.running = false; // 运行中
-		this.inited = true; // 初始化完成
+		this.inited = false; // 初始化完成
 		this.started = false; // 本轮播放过
 		// 循环次数
 		this.loopTime = 0;
@@ -107,78 +111,70 @@ export default class Track {
 	get alive() { return this._alive; }
 	set alive(v) { this._alive = v; }
 
-	traverse(f) {
-		// 自己
-		f(this)
-		// children
-		if (!this.children || this.children.length === 0) return
-		this.children.forEach(c => c.traverse(f))
-	}
-
-	init(time) {
-		if (this.running) {
+	reset() {
+		if (this.started) {
 			// NOTE: 避免终止位置不正确
 			this.onUpdate && this.onUpdate(this.endTime, 1);
 			this.onEnd && this.onEnd(this.endTime);
+			this.inited = false;
+			this.started = false;
+			this.running = false;
 		}
-
-		this.running = false;
-		this.started = false;
-
-		// this.inited = false;
-		this.onInit && this.onInit(time);
-		// this.inited = true;
 	}
 
-	tick(_time) {
+	tick(time) {
 		if (!this.alive) { return }
 
-		let time = _time; // es lint
+		this.currentTime = time
+
+		this.inited || this.onInit && this.onInit();
+		this.inited = true;
+
 		// TODO: 使用循环时，onEnd如何处理？暂时不处理
-		if (this.loop && time > this._endTime) {
+		if (this.loop && this.currentTime >= this._endTime) {
 			// 循环次数, 处理onStart onEnd
-			const newLoopTime = Math.floor((time - this._startTime) / this._duration);
-			time = (time - this._startTime) % this._duration + this._startTime;
+			const newLoopTime = Math.floor((this.currentTime - this._startTime) / this._duration);
+			this.currentTime = (this.currentTime - this._startTime) % this._duration
+
 			if (this.loopTime !== newLoopTime) {
 				// 新的一轮循环
 				this.loopTime = newLoopTime;
-				this.onStart && this.onStart(time);
-				this.onUpdate && this.onUpdate(time, (time - this._startTime) / this._duration);
-				this.onEnd && this.onEnd(time);
+
+				if (!this.started) { // 这里用running也一样
+					this.started = true
+					this.running = true
+
+					this.onStart && this.onStart(this.currentTime);
+					this.onUpdate && this.onUpdate(this.currentTime, this._getP());
+				} else {
+					this.onEnd && this.onEnd(this.currentTime);
+					this.onStart && this.onStart(this.currentTime);
+					// @BUG easing
+					this.onUpdate && this.onUpdate(this.currentTime, this._getP());
+				}
 				return;
 			}
 		}
 
-		if (time < this._startTime) {
+		if (this.currentTime < this._startTime) {
 			// Track未开始
-			// if (this.running) {
-			// 	this.running = false;
-			// 	// NOTE: 避免终止位置不正确
-			// 	this.onUpdate && this.onUpdate(time, 1);
-			// 	this.onEnd && this.onEnd(time);
-			// }
-			// if (!this.inited) {
-			// 	this.onInit && this.onInit(time);
-			// 	this.inited = true;
-			// 	this.started = false;
-			// }
+			if (this.started) {
+				this.reset()
+			}
 
-		} else if (time > this._endTime) {
+		} else if (this.currentTime >= this._endTime) {
 			// Track已结束
 			if (this.running) {
 				this.running = false;
 				// NOTE: 避免终止位置不正确
-				this.onUpdate && this.onUpdate(time, 1);
-				this.onEnd && this.onEnd(time);
+				this.onUpdate && this.onUpdate(this.currentTime, 1);
+				this.onEnd && this.onEnd(this.currentTime);
 			} else if (!this.started) {
 				// NOTE: 避免整个动画被跳过，起码要播一下最后一帧
-				// if (!this.inited) {
-				// 	this.onInit && this.onInit(time);
-				// 	this.inited = true;
-				// }
-				this.onStart && this.onStart(time);
-				this.onUpdate && this.onUpdate(time, 1);
-				this.onEnd && this.onEnd(time);
+				// @TODO 这里的time传哪个
+				this.onStart && this.onStart(this.currentTime);
+				this.onUpdate && this.onUpdate(this.currentTime, 1);
+				this.onEnd && this.onEnd(this.currentTime);
 				this.started = true;
 			}
 			// 过期而且不循环（循环的情况在上面处理）
@@ -186,98 +182,21 @@ export default class Track {
 
 		} else {
 			// Track运行中
-			// if (!this.inited) {
-			// 	this.onInit && this.onInit(time);
-			// 	this.inited = true;
-			// }
 			if (!this.running) {
 				this.running = true;
 				// this.inited = false;
 				this.started = true;
-				this.onStart && this.onStart(time);
+				this.onStart && this.onStart(this.currentTime);
 			}
-			if (this.onUpdate) {
-				let p = (time - this._startTime) / this._duration;
-				// 缓动
-				if (this.easing) { p = this.easing(p); }
-				this.onUpdate(time, p);
-			}
+
+			this.onUpdate && this.onUpdate(this.currentTime, this._getP());
 		}
 	}
 
-	// 垃圾回收
-	recovery() {
-		// 倒序删除，以免数组索引混乱
-		for (let i = this.tracks.length - 1; i >= 0; i--) {
-			if (!this.tracks[i].alive) {
-				this.tracks.splice(i, 1);
-			}
-		}
-	}
-
-	/**
-	 * 根据配置创建一个Track
-	 * @param {Object} props 配置项，详见Track.constructor
-	 * @return {Track} 所创建的Track
-	 */
-	addTrack(props) {return this.add(props);}
-	add(props) {
-		if (props.isTimeline) {
-			props.tracks.push(props)
-		} else {
-			const track = new Track(props);
-			track._safeClip(this.duration);
-			track.onInit && track.onInit(this.currentTime);
-			this.tracks.push(track);
-			return track;
-		}
-	}
-
-	// @TODO remove
-	removeTrack(track) {return this.remove(track);}
-	remove(track) {console.warn('remove TODO');}
-
-	// 停掉指定Track
-	stopTrack(track) {
-		const uuid = track.uuid;
-		for (let i = this.tracks.length - 1; i >= 0 ; i--) {
-			if (this.tracks[i].uuid === uuid) {
-				this.tracks[i].alive = false;
-			}
-		}
-	}
-
-	/**
-	 * 根据ID获取Tracks
-	 * @param  {Number} id
-	 * @return {Array(Track)}
-	 */
-	getTracksByID(id) {
-		const tracks = [];
-		for (let i = 0; i < this.tracks.length; i++) {
-			if (this.tracks[i].id === id) {
-				tracks.push(this.tracks[i])
-			}
-		}
-		return tracks;
-	}
-
-	clear() {
-		this.tracks = [];
-	}
-
-	// 避免和时间线起点对齐导致onStart不能正确触发
-	_safeClip(end) {
-		if (this._startTime <= 0) {
-			this._startTime = 0.5;
-		}
-		if (this._startTime >= end) {
-			this._startTime = end - 1;
-		}
-		if (this._endTime >= end) {
-			this._endTime = end - 0.5;
-			// 原则上，p不大于一即可
-			this._duration = end - this._startTime;
-		}
+	_getP() {
+		let p = (this.currentTime - this._startTime) / this._duration;
+		// 缓动
+		if (this.easing) { p = this.easing(p); }
+		return p;
 	}
 }

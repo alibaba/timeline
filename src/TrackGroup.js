@@ -1,21 +1,37 @@
+import Track from './Track'
+
 // 默认配置
 const CONFIG_DEFAULT = {
 	duration: Infinity,
 	loop: false,
 };
 
-export default class TrackGroup {
+export default class TrackGroup extends Track {
 	constructor(config) {
-		this.config = {
+		config = {
 			...CONFIG_DEFAULT,
 			...config,
 		};
 
+		super(config);
+
+		this.config = config;
+
 		this.isTrackGroup = true
 		// 子级Track
 		this.tracks = [];
-		this.currentTime = 0; // timeLocal
-		this.duration = this.config.duration;
+		this.children = this.tracks;
+
+		// this.currentTime = 0; // timeLocal
+		// this.duration = this.config.duration;
+	}
+
+	traverse(f) {
+		// 自己
+		f(this)
+		// children
+		if (!this.children || this.children.length === 0) return
+		this.children.forEach(c => c.traverse(f))
 	}
 
 	// 垃圾回收
@@ -38,23 +54,23 @@ export default class TrackGroup {
 		if (props.isTimeline) {
 			props.tracks.push(props)
 			props.parent = this;
-			props.onInit && props.onInit(this.currentTime);
+			// props.onInit && props.onInit(this.currentTime);
 			return props;
 		} else if (props.isTrack) {
 			const track = props;
-			track._safeClip(this.duration);
+			// track._safeClip(this.duration);
 			if (track.parent) {
 				track.parent.remove(track);
 			}
 			track.parent = this;
-			track.onInit && track.onInit(this.currentTime);
+			// track.onInit && track.onInit(this.currentTime);
 			this.tracks.push(track);
 			return track;
 		} else {
 			const track = new Track(props);
-			track._safeClip(this.duration);
+			// track._safeClip(this.duration);
 			track.parent = this;
-			track.onInit && track.onInit(this.currentTime);
+			// track.onInit && track.onInit(this.currentTime);
 			this.tracks.push(track);
 			return track;
 		}

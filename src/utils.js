@@ -53,4 +53,19 @@ if (typeof requestAnimationFrame !== 'undefined') {
 	cancelRaf = clearTimeout;
 }
 
-export { getTimeNow, raf, cancelRaf };
+// 避免和时间线起点对齐导致onStart不能正确触发
+function safeClip(track, end) {
+	if (track._startTime <= 0) {
+		track._startTime = 0.5;
+	}
+	if (track._startTime >= end) {
+		track._startTime = end - 1;
+	}
+	if (track._endTime >= end) {
+		track._endTime = end - 0.5;
+		// 原则上，p不大于一即可
+		track._duration = end - track._startTime;
+	}
+}
+
+export { getTimeNow, raf, cancelRaf, safeClip };
