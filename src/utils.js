@@ -8,16 +8,25 @@ let getTimeNow = null;
 
 // @NOTE: chrome的Worker里也是有process的!!!
 // 			而且和node的process不一样!!!
-if (typeof (window) === 'undefined' &&
-	typeof (process) !== 'undefined' &&
-	process.hrtime !== undefined) {
+// if (typeof (window) === 'undefined' &&
+// 	typeof (process) !== 'undefined' &&
+// 	process.hrtime !== undefined) {
 
+if (typeof (process) !== 'undefined' && process.hrtime !== undefined) {
+	// node模式
+	console.log('timeline node 模式1');
 	getTimeNow = function () {
 		const time = process.hrtime();
 		// Convert [seconds, nanoseconds] to milliseconds.
 		return time[0] * 1000 + time[1] / 1000000;
 	};
-
+} else if (typeof (window) !== 'undefined' && window.process && window.process.hrtime) {
+	console.log('timeline node 模式2');
+	getTimeNow = function () {
+		const time = window.process.hrtime();
+		// Convert [seconds, nanoseconds] to milliseconds.
+		return time[0] * 1000 + time[1] / 1000000;
+	};
 } else if (typeof (this) !== 'undefined' &&
 			this.performance !== undefined &&
 			this.performance.now !== undefined) {

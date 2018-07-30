@@ -112,6 +112,8 @@ export default class Track {
 	set alive(v) { this._alive = v; }
 
 	reset() {
+		// console.error('track reset');
+		debugger
 		if (this.started) {
 			// NOTE: 避免终止位置不正确
 			this.onUpdate && this.onUpdate(this.endTime, 1);
@@ -134,7 +136,7 @@ export default class Track {
 		if (this.loop && this.currentTime >= this._endTime) {
 			// 循环次数, 处理onStart onEnd
 			const newLoopTime = Math.floor((this.currentTime - this._startTime) / this._duration);
-			this.currentTime = (this.currentTime - this._startTime) % this._duration
+			this.currentTime = (this.currentTime - this._startTime) % this._duration + this._startTime;
 
 			if (this.loopTime !== newLoopTime) {
 				// 新的一轮循环

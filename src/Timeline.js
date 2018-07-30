@@ -28,6 +28,9 @@ const CONFIG_DEFAULT = {
 	// 最大帧率限制
 	maxFPS: Infinity,
 
+	// 是否假设每两次requestAnimationFrame之间的间隔是相同的
+	fixStep: null,
+
 	// @TODO: 保证每个节点的执行顺序
 	// orderGuarantee: true,
 
@@ -87,6 +90,8 @@ export default class Timeline extends TrackGroup {
 
 		this._timeoutID = 0; // 用于给setTimeout和setInterval分配ID
 
+		this._supTimeNow = 0;
+
 		this.ports = [];
 
 		this.localShadows = [];
@@ -105,6 +110,8 @@ export default class Timeline extends TrackGroup {
 		// 非浏览器主线程环境则忽略
 		if (this.config.pauseWhenInvisible && typeof (document) !== 'undefined') {
 			document.addEventListener("visibilitychange", () => {
+				// 如果已经被控制，则不做判断
+				if (this.origin) return;
 				if (document.hidden) {
 					this._timeBeforeHidden = this.currentTime;
 					cancelRaf(this.animationFrameID);
@@ -130,13 +137,22 @@ export default class Timeline extends TrackGroup {
 	}
 
 	// 相对时间，只能用来计算差值
-	_getTimeNow() { return getTimeNow(); }
+	_getTimeNow() {
+		// NOTE 固定帧长的话，则直接在当前时间（this.getTime()）基础上加上帧长，但是referenceTime首次计算时为undefined
+		// return this.config.fixStep ? ((this.referenceTime || 0) + this.currentTime + this.config.fixStep) : getTimeNow();
+		return this.config.fixStep ? this._supTimeNow : getTimeNow();
+	}
 
 	/**
 	* 每帧调用
 	* @param  {Num}  time  opt, 跳转到特定时间, 单步逐帧播放
 	*/
 	tick(time) {
+		// 不使用系统时间，假设每两次requestAnimationFrame之间的间距是相等的
+		if (this.config.fixStep) {
+			this._supTimeNow += this.config.fixStep
+		}
+
 		if (time === undefined) {
 			const currentTime = this._getTimeNow() - this.referenceTime;
 			// FPS限制
@@ -225,17 +241,17 @@ export default class Timeline extends TrackGroup {
 			this.recovery();
 		}
 
+		if (this.stats) this.stats.end()
+
 		if (time !== undefined) {
 			this.playing = false;
 			return this;
 		}
 
 		if (this.alive) {
-			this.playing = false;
 			this.animationFrameID = raf(() => this.tick());
 		}
 
-		if (this.stats) this.stats.end()
 		return this;
 	}
 
@@ -390,7 +406,7 @@ export default class Timeline extends TrackGroup {
 
 	clearTimeout(ID) {
 		const track = this.getTracksByID('__timeout__' + ID)[0];
-		if (track) this.stopTrack(track);
+		if (track) {track.alive = false};
 	}
 
 	clearInterval(ID) {
@@ -497,7 +513,7 @@ export default class Timeline extends TrackGroup {
 
 		this.origin = origin;
 
-		this.shadow_id = performance.now() + Math.random();
+		this.shadow_id = getTimeNow() + Math.random();
 
 		// 本地Origin和远程Origin
 		if (origin.isTimeline) {
