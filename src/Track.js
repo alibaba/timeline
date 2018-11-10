@@ -58,16 +58,19 @@ export default class Track {
 
 		let _duration = duration; // es lint
 
-		if (!_duration && !endTime) {
+		// TODO 测试duration 0 的情况
+		// NOTE 处理0
+		// if (!_duration && !endTime) {
+		if ((_duration - 0 !== _duration) && (endTime - 0 !== endTime)) {
 			_duration = Infinity;
 		}
 
-		if (_duration) {
+		if (_duration - 0 === _duration) {
 			this._duration = _duration;
 			this._endTime = startTime + _duration;
 		}
 
-		if (endTime) {
+		if (endTime - 0 === endTime) {
 			this._duration = endTime - startTime;
 			if (this._endTime !== endTime) {
 				console.warn('endTime与duration不一致，将以endTime为准');
@@ -75,7 +78,7 @@ export default class Track {
 			}
 		}
 
-		if (this._startTime < 0 || this._endTime <= this._startTime) {
+		if (this._startTime < 0 || this._endTime < this._startTime) {
 			throw new Error('wrong parameters');
 		}
 

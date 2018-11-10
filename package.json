@@ -1,6 +1,6 @@
 {
   "name": "@ali/Timeline",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "author": "西萌",
   "description": "时间线系统",
   "main": "dist/Timeline.js",

@@ -7,19 +7,19 @@
 <body>
 <script src="/static/import.demo.js" charset="utf-8"></script>
 <script type="text/javascript">
-const timeline = new Timeline({
-    pauseWhenInvisible: true,
-    duration: 10000,
-    maxStep: 100,
-    maxFPS: 20,
+// const timeline = new Timeline({
+//     pauseWhenInvisible: true,
+//     duration: 10000,
+//     maxStep: 100,
+//     maxFPS: 20,
 
-    // loop: true,
+//     // loop: true,
 
-    onInit: () => {console.log('timeline init');},
-    onStart: (time) => {console.log('timeline start', time);},
-    onEnd: (time) => {console.log('timeline end', time);},
-    // onUpdate: () => {console.log(timeline.playing);}
-})
+//     onInit: () => {console.log('timeline init');},
+//     onStart: (time) => {console.log('timeline start', time);},
+//     onEnd: (time) => {console.log('timeline end', time);},
+//     // onUpdate: () => {console.log(timeline.playing);}
+// })
 
 // timeline.addTrack({
 //     startTime: 1000,
@@ -34,19 +34,37 @@ const timeline = new Timeline({
 //
 // console.log(timeline.tracks[0]);
 
+const m = document.createElement('div')
+m.innerHTML = '0'
+document.body.appendChild(m)
+
+const timeline = new Timeline({
+    pauseWhenInvisible: true,
+    duration: Infinity,
+    maxFPS: 30,
+})
+
+timeline.addTrack({
+	duration: 3000,
+	loop: true,
+	onUpdate: (t, p) => {
+		m.style.marginTop = '' + 1000 * p + 'px'
+	}
+})
+
 timeline.play()
 
-let id = 0
+// let id = 0
 
-const s = () => {
-    id = timeline.setInterval(() => {
-        console.log('interval');
-        timeline.clearInterval(id)
-        s()
-    }, 2000);
-}
+// const s = () => {
+//     id = timeline.setInterval(() => {
+//         console.log('interval');
+//         timeline.clearInterval(id)
+//         s()
+//     }, 2000);
+// }
 
-s()
+// s()
 
 
 </script>

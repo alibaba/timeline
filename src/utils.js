@@ -12,13 +12,26 @@ let getTimeNow = null;
 // 	typeof (process) !== 'undefined' &&
 // 	process.hrtime !== undefined) {
 
+// 注意hrtime拿到的时间是无意义的
+let _timeComp = null
+let _time = 0
+
 if (typeof (process) !== 'undefined' && process.hrtime !== undefined) {
 	// node模式
 	console.log('timeline node 模式1');
+
+	_timeComp = process.hrtime();
+
 	getTimeNow = function () {
-		const time = process.hrtime();
+		const dtime = process.hrtime(_timeComp);
+		// 这两个之间的时间忽略掉吗
+		_timeComp = process.hrtime();
+
+		const _dtime = dtime[0] * 1000 + dtime[1] / 1000000;
+		_time += _dtime
+
 		// Convert [seconds, nanoseconds] to milliseconds.
-		return time[0] * 1000 + time[1] / 1000000;
+		return _time;
 	};
 } else if (typeof (window) !== 'undefined' && window.process && window.process.hrtime) {
 	console.log('timeline node 模式2');

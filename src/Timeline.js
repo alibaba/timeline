@@ -171,6 +171,30 @@ export default class Timeline extends TrackGroup {
 			this.seek(time);
 		}
 
+		if (this.stats) this.stats.begin()
+
+		// @NOTE 不使用Track.tick中对于循环的处理
+		if (this.currentTime >= this.duration && this.loop) {
+			if (!this.started) { // 这里用running也一样
+				this.started = true
+				this.running = true
+
+				this.onInit && this.onInit(time);
+				this.onStart && this.onStart(this.currentTime);
+			} else {
+				this.onEnd && this.onEnd(this.currentTime);
+				this.onStart && this.onStart(this.currentTime);
+			}
+			this.seek(0);
+			for (let i = 0; i < this.tracks.length; i++) {
+				if (this.tracks[i].started) {
+					this.tracks[i].reset()
+				}
+			}
+		}
+
+		super.tick(this.currentTime);
+
 		// 同步Timeline
 		this.remoteShadows.forEach(shadow => {
 			const msg = {
@@ -211,30 +235,6 @@ export default class Timeline extends TrackGroup {
 			shadow.referenceTime = this.referenceTime;
 			shadow.tick(this.currentTime);
 		});
-
-		if (this.stats) this.stats.begin()
-
-		// @NOTE 不使用Track.tick中对于循环的处理
-		if (this.currentTime >= this.duration && this.loop) {
-			if (!this.started) { // 这里用running也一样
-				this.started = true
-				this.running = true
-
-				this.onInit && this.onInit(time);
-				this.onStart && this.onStart(this.currentTime);
-			} else {
-				this.onEnd && this.onEnd(this.currentTime);
-				this.onStart && this.onStart(this.currentTime);
-			}
-			this.seek(0);
-			for (let i = 0; i < this.tracks.length; i++) {
-				if (this.tracks[i].started) {
-					this.tracks[i].reset()
-				}
-			}
-		}
-
-		super.tick(this.currentTime);
 
 		// 自动回收
 		if (this.config.autoRecevery) {
@@ -442,14 +442,18 @@ export default class Timeline extends TrackGroup {
 			// 本地
 			shadow.config = {
 				...this.config,
-				shadows: [],
-				onInit: null,
-				onStart: null,
+				// shadows: [],
+				// onInit: null,
+				// onStart: null,
 				onUpdate: null,
-				onEnd: null,
+				// onEnd: null,
 			};
 			shadow.duration = shadow.config.duration;
 			shadow.loop = shadow.config.loop;
+			shadow.onInit = null;
+			shadow.onStart = null;
+			shadow.onEnd = null;
+
 			this.localShadows.push(shadow);
 		} else {
 			// 远程
