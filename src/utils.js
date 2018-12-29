@@ -6,60 +6,84 @@
 // 获取系统时间戳的函数
 let getTimeNow = null;
 
-// @NOTE: chrome的Worker里也是有process的!!!
-// 			而且和node的process不一样!!!
-// if (typeof (window) === 'undefined' &&
-// 	typeof (process) !== 'undefined' &&
-// 	process.hrtime !== undefined) {
+// 如果有 process.hrtime ，则使用这个
+// 		高精度，系统时间不相关，理论上不应该回退（与libuv有关，没有标准说明这一点），但是为了安全起见还是要使用防回退机制
 
-// 注意hrtime拿到的时间是无意义的
-let _timeComp = null
-let _time = 0
+// 如果有 performance.now ， 则使用这个，
+// 		低精度，系统时间不相关，按照标准不应该回退，但是为了安全起见还是要使用防回退机制
+
+// 如果都不能用，说明是 IE9 或者 OperaAndroid，只能用 Date.now
+// 		很低精度，系统时间相关，抖动可能性很大
+
+// 如果还不行，说明是IE8，只能用 new Date().getTime()
+// 		很低精度，性能很差，系统时间相关，抖动可能性很大
+
+// 无论使用哪种时间接口，都必须做防回退保证
+
+let _timePrev = 0;
+let _time = 0;
 
 if (typeof (process) !== 'undefined' && process.hrtime !== undefined) {
-	// node模式
-	console.log('timeline node 模式1');
+	console.log('hrtime 高精度时间');
 
-	_timeComp = process.hrtime();
+	// 初始化
+	_timePrev = process.hrtime();
 
 	getTimeNow = function () {
-		const dtime = process.hrtime(_timeComp);
-		// 这两个之间的时间忽略掉吗
-		_timeComp = process.hrtime();
-
-		const _dtime = dtime[0] * 1000 + dtime[1] / 1000000;
-		_time += _dtime
+		// 注意hrtime拿到的时间是无意义的，需要进行时间对比
+		const _dtime = process.hrtime(_timePrev);
+		_timePrev = process.hrtime()
 
 		// Convert [seconds, nanoseconds] to milliseconds.
+		const dtime = _dtime[0] * 1000 + _dtime[1] / 1000000;
+
+		// 防回退:
+		// 		如果发生回退，这一步的时间将停止，
+		// 		但是由于当前的hrtime已经被记录下来，下一步就会继续前进
+		_time += dtime > 0 ? dtime : 0;
 		return _time;
 	};
-} else if (typeof (window) !== 'undefined' && window.process && window.process.hrtime) {
-	console.log('timeline node 模式2');
-	getTimeNow = function () {
-		const time = window.process.hrtime();
-		// Convert [seconds, nanoseconds] to milliseconds.
-		return time[0] * 1000 + time[1] / 1000000;
-	};
-} else if (typeof (this) !== 'undefined' &&
-			this.performance !== undefined &&
-			this.performance.now !== undefined) {
 
-	// In a browser, use window.performance.now if it is available.
-	// This must be bound, because directly assigning this function
-	// leads to an invocation exception in Chrome.
-	getTimeNow = window.performance.now.bind(window.performance);
+} else if (typeof (performance) !== 'undefined' && performance.now !== undefined) {
+	console.log('performance.now 浏览器精度时间');
+
+	_timePrev = performance.now();
+
+	getTimeNow = function () {
+		const timeCurr = performance.now();
+		const dtime = timeCurr - _timePrev;
+		_timePrev = timeCurr;
+
+		_time += dtime > 0 ? dtime : 0;
+		return _time;
+	}
 
 } else if (Date.now !== undefined) {
+	console.warn('Date.now 低精度时间，建议升级浏览器');
 
-	// Use Date.now if it is available.
-	getTimeNow = Date.now;
+	_timePrev = Date.now();
+
+	getTimeNow = function () {
+		const timeCurr = Date.now();
+		const dtime = timeCurr - _timePrev;
+		_timePrev = timeCurr;
+
+		_time += dtime > 0 ? dtime : 0;
+		return _time;
+	}
 
 } else {
+	console.warn('new Date().getTime() 低精度低性能时间，建议升级浏览器');
+	_timePrev = new Date().getTime();
 
-	// Otherwise, use 'new Date().getTime()'.
 	getTimeNow = function () {
-		return new Date().getTime();
-	};
+		const timeCurr = new Date().getTime();
+		const dtime = timeCurr - _timePrev;
+		_timePrev = timeCurr;
+
+		_time += dtime > 0 ? dtime : 0;
+		return _time;
+	}
 
 }
 
@@ -71,7 +95,7 @@ if (typeof requestAnimationFrame !== 'undefined') {
 	raf = requestAnimationFrame;
 	cancelRaf = cancelAnimationFrame;
 } else {
-	raf = cbk => setTimeout(cbk, 20);
+	raf = cbk => setTimeout(cbk, 15);
 	cancelRaf = clearTimeout;
 }
 
