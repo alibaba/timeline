@@ -22,7 +22,7 @@ const compiler = webpack(config)
 var devOption = {
     noInfo: true,
     publicPath: config.output.publicPath, // 静态文件位置
-    stats: { colors: true }, // 进度输出
+    stats: 'minimal', // 进度输出
     historyApiFallback: true,
     headers: {
       'Access-Control-Allow-Origin': '*'
@@ -53,24 +53,6 @@ app.listen(3059, '0.0.0.0', (err)=>{
     }
     else {
         console.log('Listening @ http://localhost:3059')
-		open('http://localhost:3059')
+		open('http://localhost:3059/html/index')
     }
 })
-
-
-function getDemoEntries() {
-    var dirPath = path.resolve(__dirname, 'demo/')
-    var entries = [];
-    var reg = /.js$/;
-    var pageDir = fs.readdirSync(dirPath) || [];
-
-    for (var j = 0; j < pageDir.length; j++) {
-        var filePath = path.resolve(dirPath, pageDir[j]);
-        var fileStat = fs.statSync(filePath);
-        if (fileStat.isFile() && reg.test(pageDir[j])) {
-            var name = pageDir[j].replace('.js', '');
-            entries.push(name);
-        }
-    }
-    return entries;
-}

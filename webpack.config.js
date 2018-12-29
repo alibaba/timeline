@@ -31,7 +31,7 @@ if (ENTRY) {
     entry = getDemoEntry(path.resolve(__dirname, 'demo/'));
 }
 
-var plugins, devtool, output, mode, optimization;
+var devtool, output, mode;
 
 if (process.env.NODE_ENV === 'production') {
     console.log("publishing");
@@ -39,10 +39,6 @@ if (process.env.NODE_ENV === 'production') {
     entry = {
         Timeline: [path.resolve("./src/index.js")],
     };
-
-    plugins = [
-        new webpack.NoEmitOnErrorsPlugin(), // 出错时不发布
-    ];
 
     devtool = undefined;
 
@@ -62,10 +58,6 @@ if (process.env.NODE_ENV === 'production') {
 } else {
     console.log("deving");
 
-	plugins = [
-        new webpack.NoEmitOnErrorsPlugin() // 出错时不发布
-    ];
-
 	devtool = "inline-source-map";
 
 	output = {
@@ -81,7 +73,9 @@ var config = {
     entry: entry,
     output: output,
     devtool: devtool,
-    plugins: plugins,
+    plugins: [
+        new webpack.NoEmitOnErrorsPlugin(), // 出错时不发布
+    ],
     mode: mode,
 	resolve: {
 	  alias: {
@@ -96,10 +90,9 @@ var config = {
                 include: /src|demo/,
                 loader: 'babel-loader',
                 options: {
-                    presets: ['env'],
-                    plugins: [
-                        "transform-object-rest-spread",
-                    ]
+                    cacheDirectory: true,
+                    presets: ['@babel/preset-env'],
+                    plugins: ['@babel/plugin-proposal-object-rest-spread'],
                 }
             }
         ]

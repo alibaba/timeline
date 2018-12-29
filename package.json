@@ -1,6 +1,6 @@
 {
-  "name": "@ali/Timeline",
-  "version": "1.0.9",
+  "name": "@ali/timeline",
+  "version": "1.1.0",
   "author": "西萌",
   "description": "时间线系统",
   "main": "dist/Timeline.js",
@@ -10,9 +10,12 @@
   },
   "dependencies": {},
   "devDependencies": {
+    "@babel/core": "^7.2.2",
+    "@babel/plugin-proposal-object-rest-spread": "^7.2.0",
+    "@babel/preset-env": "^7.2.3",
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.3",
-    "babel-loader": "^7.1.5",
+    "babel-loader": "^8.0.4",
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "babel-preset-env": "^1.7.0",
     "express": "^4.16.3",
