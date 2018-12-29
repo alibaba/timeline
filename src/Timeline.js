@@ -108,6 +108,8 @@ export default class Timeline extends TrackGroup {
 
 		// 页面不可见时暂停计时
 		// 非浏览器主线程环境则忽略
+        // @TODO @FIXME @BUG
+        // 当前版本electron的webview中这个接口行为错乱
 		if (this.config.pauseWhenInvisible && typeof (document) !== 'undefined') {
 			document.addEventListener("visibilitychange", () => {
 				// 如果已经被控制，则不做判断
@@ -145,6 +147,8 @@ export default class Timeline extends TrackGroup {
 
 	/**
 	* 每帧调用
+	* @TODO 尽快触发下一次回调，避免回调过程中抛出bug导致整个timeline停止运行
+	* @TODO 同时需要避免子级故障导致上级停止运行，上级故障可以导致子级停止
 	* @param  {Num}  time  opt, 跳转到特定时间, 单步逐帧播放
 	*/
 	tick(time) {
@@ -243,16 +247,19 @@ export default class Timeline extends TrackGroup {
 
 		if (this.stats) this.stats.end()
 
-		if (time !== undefined) {
-			this.playing = false;
-			return this;
-		}
+        // @NOTE @TODO
+        // 回调中抛出bug不应该导致整个timeline停止，
+        // 因此这个必须放在所有回调之前
+        // 然而alive是在super.tick中判断的，因此也不能放在最前面
+        // 这里只能使用 try catch 或者 timeout
+        // 或者总是开启raf循环，但是在入口判断是否直接抛弃
+        if (time !== undefined) {
+            this.playing = false;
+        } else if (this.alive) {
+            this.animationFrameID = raf(() => this.tick());
+        }
 
-		if (this.alive) {
-			this.animationFrameID = raf(() => this.tick());
-		}
-
-		return this;
+        return this;
 	}
 
 	// 开始播放
