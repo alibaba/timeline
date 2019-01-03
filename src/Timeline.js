@@ -31,6 +31,11 @@ const CONFIG_DEFAULT = {
 	// 是否假设每两次requestAnimationFrame之间的间隔是相同的
 	fixStep: null,
 
+	// 如果回调抛错是否继续运行，如果关闭此项，回调抛错会导致整个timeline停止运行
+	ignoreErrors: true,
+	// catch到的error是否要输出，如果开启ignoreErrors并且开启outputErrors，可能会由于连续打印错误而造成内存溢出
+	outputErrors: true,
+
 	// @TODO: 保证每个节点的执行顺序
 	// orderGuarantee: true,
 
@@ -187,6 +192,9 @@ export default class Timeline extends TrackGroup {
 			this.seek(time);
 		}
 
+	// @TODO 需要标定 try-catch-finally 在不同浏览器中对性能的影响
+	try {
+
 		if (this.stats) this.stats.begin();
 
 		// @NOTE 不使用Track.tick中对于循环的处理
@@ -258,6 +266,14 @@ export default class Timeline extends TrackGroup {
 		}
 
 		if (this.stats) this.stats.end();
+
+	} catch (e) {
+		if (!this.config.ignoreErrors || this.config.outputErrors) console.error(e);
+		if (!this.config.ignoreErrors) {
+			this.stop(); // 避免与pauseWhenInvisible冲突
+			return;
+		}
+	}
 
 		// @NOTE @TODO
 		// 回调中抛出bug不应该导致整个timeline停止，
