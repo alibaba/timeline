@@ -6,7 +6,7 @@
 >
 > Keep everything happen at the right time.
 
-在一个Timeline中管理所有的动画和事件，WebMedia-like接口，致力于稳定、流畅地实现复杂动画并易于调试。
+在一个Timeline中管理所有的动画和shedule任务，WebMedia-like接口，致力于稳定、流畅地实现复杂动画并易于调试。
 
 **支持多线程、multi-context同步。**
 
@@ -16,7 +16,7 @@ Timeline的设计原则是：无论何时从任意时间跳到任意时间，总
 
 `tnpm i --save @ali/Timeline`
 
-![](http://web.npm.alibaba-inc.com/badge/v/@ali/Timeline.svg?style=flat-square)
+![](http://web.npm.alibaba-inc.com/badge/v/@ali/Timeline.svg?style=flat-square)![](http://web.npm.alibaba-inc.com/badge/d/@ali/Timeline.svg?style=flat-square)
 
 支持环境: `broswer`、`WebWorker`、`node.js`、`electron`、`webview`
 
@@ -27,20 +27,23 @@ Timeline的设计原则是：无论何时从任意时间跳到任意时间，总
 ```javascript
 import Timeline from '@ali/Timeline'
 
+// 创建一个timeline实例
 const timeline = new Timeline({
     duration: Infinity, // 整个timeline的时长，超过后会停止或循环
     autoRecevery: true, // 是否自动回收结束的track轨道
 })
 
+// 开始运行这个timeline，我们的接口风格与 HTML Audio 标签保持一致
 timeline.play()
 
+// 添加一个track（动画轨道）
 timeline.addTrack({
     startTime: timeline.currentTime + 500, // 开始时间
     duration: 1000, // 时长
     loop: false, // 是否循环
     onStart: (time) => {console.log('start')}, // 起始回调
     onEnd: (time) => {console.log('end')}, // 结束回调
-    onUpdate: (time, p) => {console.log('update', time, p)}, // 更新回调
+    onUpdate: (time, percent) => {console.log('update', time, percent)}, // 更新回调
 })
 ```
 
@@ -48,13 +51,16 @@ timeline.addTrack({
 
 # 多线程同步
 
+**如果你不使用WebWorker，请跳过这一部分**
+
 ```javascript
 // 主线程
 
 const worker = new Worker('worker.js')
 
-const timeline = new Timeline.OriginTimeline()
+const timeline = new Timeline()
 
+timeline.listen(worker)
 
 timeline.addTrack({
     duration: 2000,
@@ -71,10 +77,9 @@ timeline.play()
 
 importScripts('/path/to/Timeline.js')
 
-const timeline = new Timeline.ShadowTimeline({
-    port: self,
-    id: 't_0',
-})
+const timeline = new Timeline()
+
+timeline.setOrigin(self) // self 就是 worker 和 主线程 通信的通信端口
 
 timeline.addTrack({
     duration: 2000,
@@ -92,28 +97,28 @@ timeline.addTrack({
 
 ### `constructor`
 
-- autoRecevery: false,
+- `autoRecevery`: false,
     - 是否自动回收结束的track轨道，如果不需要loop整个timelne则建议打开，以免内存溢出
-- loop: false,
+- `loop`: false,
     - 结束后是否循环
-- duration: Infinity,
+- `duration`: Infinity,
     - 整个timeline的时长，超过后会停止或循环
-- pauseWhenInvisible: false,
+- `pauseWhenInvisible`: false,
     - 标签页不可见时自动暂停播放
-- maxStep: Infinity,
+- `maxStep`: Infinity,
     - 最长帧时间限制，如果帧步长超过这个值，则会被压缩到这个值,
     - 用于避免打断点时继续计时，端点结束后时间突进
-- maxFPS: Infinity
+- `maxFPS`: Infinity
     - 最大帧率，如果你的程序在高FPS下运行不够稳定，可以让TimeLine主动降帧，因为 **稳定的低帧率比不稳定的高帧率看起来更流畅**
     - ** 建议将这个值设为浏览器帧率（通常是60）的因数，例如60、30、20、10
-- openStats: false
+- `openStats`: false
     - 是否打开性能面板
     - 在外部使用stats.js测到的帧率和帧时间是不准确的，因此timeline在内部封装了stats.js，直接打开即可
-- ignoreErrors: true
-	- 用户代码抛错后是否继续运行，如果关闭此项，回调抛错会导致整个timeline停止运行
-- outputErrors: true
-	- 用户代码抛错后是否输出错误，配合ignoreErrors使用
-	- 如果开启ignoreErrors并且开启outputErrors，可能会由于连续打印错误而造成内存溢出
+- `ignoreErrors`: true
+  - 用户代码抛错后是否继续运行，如果关闭此项，回调抛错会导致整个timeline停止运行
+- `outputErrors`: true
+  - 用户代码抛错后是否输出错误，配合ignoreErrors使用
+  - 如果开启ignoreErrors并且开启outputErrors，可能会由于连续打印错误而造成内存溢出
 
 ### methods
 
@@ -172,36 +177,36 @@ timeline.addTrack({
     - 同clearInterval
 
 <!-- - `getTime()`
-    - 获取当前时间线的本地时间戳。
-    - 如果调用了play，将以调用时的系统时间为基准；如果没有掉用过play，将以初始化时的系统时间为基准。 -->
+​    - 获取当前时间线的本地时间戳。
+​    - 如果调用了play，将以调用时的系统时间为基准；如果没有掉用过play，将以初始化时的系统时间为基准。 -->
 
 
 ### properties
 
-- currentTime: 当前时间
-- running： 是否在播放中
-- onEnd(setter): 播放完成的回调
-- tracks: 这个timeline中所有的track
+- `currentTime`: 当前时间
+- `running`： 是否在播放中
+- `onEnd`(setter): 播放完成的回调
+- `tracks`: 这个timeline中所有的track
 
 
 ## **Track**
 
 一个track（轨道）是时间线上的一段区间，相当于Tween.js中的一个tween对象，有开始时间、结束时间、时长、起始回调、终止回调、过程回调，可以循环，首次开始还有初始化回调。
 
-![](https://img.alicdn.com/tfs/TB1yL.4ebGYBuNjy0FoXXciBFXa-2382-482.png)
+<img src="https://img.alicdn.com/tfs/TB1yL.4ebGYBuNjy0FoXXciBFXa-2382-482.png" width=1000px>
 
 
-- id: undefined 方便debug
-- loop: false,  是否循环
-- startTime,    开始时间
-- endTime,      结束时间
-- duration,     时长，duration和endTime输入一个即可
-- onStart,      起始回调，参数：time
-- onEnd,        终止回调，参数：time
-- onUpdate,     过程会掉，参数：time, p 其中p为该轨道当前进度(0~1)
-- onInit,       首次开始前的回调，无论loop与否都只会触发一次
-- easing,       缓动函数，等同于在onUpdate中对p进行处理，起始值和终点值应该为0和1
-- alive,        **废弃** ~~如需要删除该track，只需要将alive置为false，该track就不会再执行，会在timeline执行recovery时被清除~~
+- `id`: undefined 方便debug
+- `loop`: false,  是否循环
+- `startTime`,    开始时间
+- `endTime`,      结束时间
+- `duration`,     时长，duration和endTime输入一个即可
+- `onStart`,      起始回调，参数：time
+- `onEnd`,        终止回调，参数：time
+- `onUpdate`,     过程会掉，参数：time, p 其中p为该轨道当前进度(0~1)
+- `onInit`,       首次开始前的回调，无论loop与否都只会触发一次
+- `easing`,       缓动函数，等同于在onUpdate中对p进行处理，起始值和终点值应该为0和1
+- ~~alive~~,        **废弃** ~~如需要删除该track，只需要将alive置为false，该track就不会再执行，会在timeline执行recovery时被清除~~
 
 
 ## **Origin - Shadow**
@@ -238,7 +243,7 @@ Shadow 与 Origin 配对的方式是：
 
 # 注意事项
 
-- *l小写*
+- *`l`小写*
 
 - Timeline基于requestAnimationFrame，精度限制在raf的调用频率，通常为16ms或32ms
 
