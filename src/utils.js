@@ -24,7 +24,7 @@ let _timePrev = 0;
 let _time = 0;
 
 if (typeof (process) !== 'undefined' && process.hrtime !== undefined) {
-	console.log('hrtime 高精度时间');
+	console.log('##timeline:: hrtime 高精度时间');
 
 	// 初始化
 	_timePrev = process.hrtime();
@@ -45,7 +45,7 @@ if (typeof (process) !== 'undefined' && process.hrtime !== undefined) {
 	};
 
 } else if (typeof (performance) !== 'undefined' && performance.now !== undefined) {
-	console.log('performance.now 浏览器精度时间');
+	console.log('##timeline:: performance.now 浏览器精度时间');
 
 	_timePrev = performance.now();
 
@@ -59,7 +59,7 @@ if (typeof (process) !== 'undefined' && process.hrtime !== undefined) {
 	}
 
 } else if (Date.now !== undefined) {
-	console.warn('Date.now 低精度时间，建议升级浏览器');
+	console.warn('##timeline:: Date.now 低精度时间，建议升级浏览器');
 
 	_timePrev = Date.now();
 
@@ -73,7 +73,7 @@ if (typeof (process) !== 'undefined' && process.hrtime !== undefined) {
 	}
 
 } else {
-	console.warn('new Date().getTime() 低精度低性能时间，建议升级浏览器');
+	console.warn('##timeline:: new Date().getTime() 低精度低性能时间，建议升级浏览器');
 	_timePrev = new Date().getTime();
 
 	getTimeNow = function () {
