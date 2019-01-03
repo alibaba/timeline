@@ -85,6 +85,7 @@ export default class Timeline extends TrackGroup {
 
 		// this._ticks = []; // 把需要执行的tick排序执行（orderGuarantee）
 
+		this._hidden = null; // used to detect if `document.hidden` works correctly (may not in webviews)
 		this._timeBeforeHidden = 0;
 		this._timeBeforePaused = 0;
 
@@ -100,6 +101,14 @@ export default class Timeline extends TrackGroup {
 		this.origin;
 		this.config.origin && (this.setOrigin(this.config.origin));
 
+		// 不可以在非浏览器渲染线程中使用的接口
+		if (typeof (document) === 'undefined' && (this.config.openStats || this.config.pauseWhenInvisible)) {
+			console.error('can not use `openStats` or `pauseWhenInvisible` due to the running env');
+			this.config.openStats = false
+			this.config.pauseWhenInvisible = false
+		}
+
+		// 显示性能指标
 		if (this.config.openStats) {
 			this.stats = new Stats();
 			this.stats.showPanel(0);
@@ -107,17 +116,20 @@ export default class Timeline extends TrackGroup {
 		}
 
 		// 页面不可见时暂停计时
-		// 非浏览器主线程环境则忽略
-        // @TODO @FIXME @BUG
-        // 当前版本electron的webview中这个接口行为错乱
-		if (this.config.pauseWhenInvisible && typeof (document) !== 'undefined') {
+		// @TODO @FIXME @BUG
+		// 当前版本electron的webview中这个接口行为错乱
+		if (this.config.pauseWhenInvisible) {
 			document.addEventListener("visibilitychange", () => {
 				// 如果已经被控制，则不做判断
 				if (this.origin) return;
 				if (document.hidden) {
+					if (this._hidden === true) { console.error('document.hidden may not work'); }
+					this._hidden = true
 					this._timeBeforeHidden = this.currentTime;
 					cancelRaf(this.animationFrameID);
 				} else {
+					if (this._hidden === false) { console.error('document.hidden may not work'); }
+					this._hidden = false
 					this.seek(this._timeBeforeHidden);
 					if (this.playing) {
 						this.tick();
