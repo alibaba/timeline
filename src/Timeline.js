@@ -124,12 +124,12 @@ export default class Timeline extends TrackGroup {
 				if (this.origin) return;
 				if (document.hidden) {
 					if (this._hidden === true) { console.error('document.hidden may not work'); }
-					this._hidden = true
+					this._hidden = true;
 					this._timeBeforeHidden = this.currentTime;
 					cancelRaf(this.animationFrameID);
 				} else {
 					if (this._hidden === false) { console.error('document.hidden may not work'); }
-					this._hidden = false
+					this._hidden = false;
 					this.seek(this._timeBeforeHidden);
 					if (this.playing) {
 						this.tick();
@@ -187,7 +187,7 @@ export default class Timeline extends TrackGroup {
 			this.seek(time);
 		}
 
-		if (this.stats) this.stats.begin()
+		if (this.stats) this.stats.begin();
 
 		// @NOTE 不使用Track.tick中对于循环的处理
 		if (this.currentTime >= this.duration && this.loop) {
@@ -257,21 +257,21 @@ export default class Timeline extends TrackGroup {
 			this.recovery();
 		}
 
-		if (this.stats) this.stats.end()
+		if (this.stats) this.stats.end();
 
-        // @NOTE @TODO
-        // 回调中抛出bug不应该导致整个timeline停止，
-        // 因此这个必须放在所有回调之前
-        // 然而alive是在super.tick中判断的，因此也不能放在最前面
-        // 这里只能使用 try catch 或者 timeout
-        // 或者总是开启raf循环，但是在入口判断是否直接抛弃
-        if (time !== undefined) {
-            this.playing = false;
-        } else if (this.alive) {
-            this.animationFrameID = raf(() => this.tick());
-        }
+		// @NOTE @TODO
+		// 回调中抛出bug不应该导致整个timeline停止，
+		// 因此这个必须放在所有回调之前
+		// 然而alive是在super.tick中判断的，因此也不能放在最前面
+		// 这里只能使用 try catch 或者 timeout
+		// 或者总是开启raf循环，但是在入口判断是否直接抛弃
+		if (time !== undefined) {
+			this.playing = false;
+		} else if (this.alive) {
+			this.animationFrameID = raf(() => this.tick());
+		}
 
-        return this;
+		return this;
 	}
 
 	// 开始播放
