@@ -51,6 +51,7 @@ export default class TrackGroup extends Track {
 	 */
 	addTrack(props) {return this.add(props);}
 	add(props) {
+		// @TODO 子级timeline待测试
 		if (props.isTimeline) {
 			props.tracks.push(props)
 			props.parent = this;

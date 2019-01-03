@@ -16,9 +16,9 @@ Timeline的设计原则是：无论何时从任意时间跳到任意时间，总
 
 `tnpm i --save @ali/Timeline`
 
-当前版本: `0.6.9`
+![](http://web.npm.alibaba-inc.com/badge/v/@ali/Timeline.svg?style=flat-square)
 
-支持环境: `Dom环境`、`Web Worker`、`node`、`electron`
+支持环境: `broswer`、`WebWorker`、`node.js`、`electron`、`webview`
 
 ---
 
@@ -53,10 +53,8 @@ timeline.addTrack({
 
 const worker = new Worker('worker.js')
 
-const timeline = new Timeline.OriginTimeline({
-    shadows: [worker],
-    id: 't_0',
-})
+const timeline = new Timeline.OriginTimeline()
+
 
 timeline.addTrack({
     duration: 2000,
@@ -95,7 +93,7 @@ timeline.addTrack({
 ### `constructor`
 
 - autoRecevery: false,
-    - 是否自动回收结束的track轨道
+    - 是否自动回收结束的track轨道，如果不需要loop整个timelne则建议打开，以免内存溢出
 - loop: false,
     - 结束后是否循环
 - duration: Infinity,
@@ -106,18 +104,16 @@ timeline.addTrack({
     - 最长帧时间限制，如果帧步长超过这个值，则会被压缩到这个值,
     - 用于避免打断点时继续计时，端点结束后时间突进
 - maxFPS: Infinity
-    - 最大帧率，如果你的程序在高FPS下运行不够稳定，可以让TimeLine主动降帧，因为 **稳定的低帧率总比不稳定的高帧率看起来更流畅!**
+    - 最大帧率，如果你的程序在高FPS下运行不够稳定，可以让TimeLine主动降帧，因为 **稳定的低帧率比不稳定的高帧率看起来更流畅**
     - ** 建议将这个值设为浏览器帧率（通常是60）的因数，例如60、30、20、10
 - openStats: false
     - 是否打开性能面板
     - 在外部使用stats.js测到的帧率和帧时间是不准确的，因此timeline在内部封装了stats.js，直接打开即可
-- shadows Array[Worker|WorkerGlobalScope|MessagePort]
-    - 与shadowTimeline通讯的接口，必须为数组
-    - 一个context中可以放多个Shadow
-    - 数组长度必须与Shadow个数相等
-- id
-    - 分配ID，作为标识来给Origin和Shadow配对
-    - 如果该项为空，将无法为其添加shadow
+- ignoreErrors: true
+	- 用户代码抛错后是否继续运行，如果关闭此项，回调抛错会导致整个timeline停止运行
+- outputErrors: true
+	- 用户代码抛错后是否输出错误，配合ignoreErrors使用
+	- 如果开启ignoreErrors并且开启outputErrors，可能会由于连续打印错误而造成内存溢出
 
 ### methods
 
@@ -140,19 +136,25 @@ timeline.addTrack({
 - `recovery()`
     - 回收无用的track
 
-- `addTrack(trackConfig)` : Track
+- `add(trackConfig)` : Track
     - 创建并添加一个轨道，详见Track
 
 - `stopTrack(Track)`
     - 停掉一个track，将其alive置为false，
     - 如果还未播放则不会在播放，如果正在播放则会停止，会被下一次recovery执行时被删掉
-    - 也可以只传入Track的UUID stopTrack({uuid})
+    - 也可以只传入Track的UUID: `stopTrack({uuid})`
 
 - `getTracksByID(id)`
     - 返回一个id匹配的track的数组
 
-- `addShadow(MessagePort)`
-    - 添加一个ShadowTimeline，参数为 Worker|WorkerGlobalScope|MessagePort
+- `setOrigin(Timeline|Worker|WorkerGlobalScope|MessagePort)`
+    - 设置 Origin Timeline，将自己变成这个timeline的 shadow timeline
+	- 源timeline可以为远程timeline，此时应传入通信端口：Worker|WorkerGlobalScope|MessagePort
+	- 源timeline也可以为本地上下文中的另一个Timeline，此时应传入实例
+
+- `listen(Worker|WorkerGlobalScope|MessagePort)`
+	- 监听来自一个通讯端口的消息，以作为其他timeline的Origin
+	- 如果要将本timeline作为其他上下文中timeline的源timeline，需要监听通信端口
 
 **以下接口行为与DOM标准保持一致，但是全部与timeline中的时间和行为对齐**
 
@@ -169,9 +171,9 @@ timeline.addTrack({
 - `clearInterval(id)`
     - 同clearInterval
 
-- `getTime()`
-    - 类似于`new Date().getTime()`，获取当前系统时间的时间戳。
-    - 如果调用了play，将以调用时的系统时间为基准；如果没有掉用过play，将以初始化时的系统时间为基准。
+<!-- - `getTime()`
+    - 获取当前时间线的本地时间戳。
+    - 如果调用了play，将以调用时的系统时间为基准；如果没有掉用过play，将以初始化时的系统时间为基准。 -->
 
 
 ### properties
@@ -202,44 +204,27 @@ timeline.addTrack({
 - alive,        **废弃** ~~如需要删除该track，只需要将alive置为false，该track就不会再执行，会在timeline执行recovery时被清除~~
 
 
-## **OriginTimeline**
+## **Origin - Shadow**
 
-主线程中的Master，会主动同步所有Slave的行为。已合并入Timeline，请直接使用Timeline。
+一个Timeline实例通过setOrigin添加自己的Origin之后，自己就会成为一个Shadow Timeline。
 
-<!-- ### `constructor`
+作为Shadow的Timeline，行为会被作为Origin的Timeline同步，不能再控制自己的播放与暂停。
 
-- Timeline所有配置项
+- `play|tick|seek|stop|pause|resume`这些控制方法会失效
+- `.running` 会永远返回false
 
+一个Origin可以拥有多个Shadow，一个shadow只能拥有一个Origin。
 
-### properties
+Shadow 与 Origin 配对的方式是：
 
-- 同Timeline
+### 同一个上下文（本地Shadow）
 
-### methods
+1. `shadow.setOrigin(origin)`
 
-- 同Timeline -->
+### 不同上下文（远程shadow）
 
-
-## **ShadowTimeline**
-
-Worker中的Slave，被Master同步。一个Origin可以拥有多个Shadow。
-
-### `constructor`
-
-- 配置项无效，会从Origin同步
-- port,     Worker|WorkerGlobalScope|MessagePort 与Origin通讯的接口
-- id,       分配ID，作为标识来与Origin配对
-
-### properties
-
-- 同Timeline
-- running 会永远返回false
-
-### methods
-
-- 同Timeline
-- 不可以调用play|tick|seek|stop|pause|resume这些控制方法
-- Shadow的行为由Origin控制，不应自己控制
+1. origin 监听通信端口 `origin.listen(Worker|WorkerGlobalScope|MessagePort)`
+2. shadow 向通信端口发出配对请求 `shadow.setOrigin(Worker|WorkerGlobalScope|MessagePort)`
 
 ---
 
