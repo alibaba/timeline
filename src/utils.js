@@ -45,7 +45,7 @@ if (typeof (process) !== 'undefined' && process.hrtime !== undefined) {
 	};
 
 } else if (typeof (performance) !== 'undefined' && performance.now !== undefined) {
-	console.log('##timeline:: performance.now 浏览器精度时间');
+	// console.log('%c##timeline:: performance.now 浏览器精度时间', 'color: gray;');
 
 	_timePrev = performance.now();
 

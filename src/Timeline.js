@@ -56,6 +56,9 @@ const MAX_WAIT_QUEUE = 2;
  * 接口风格与MediaElement保持一致
  */
 export default class Timeline extends TrackGroup {
+	// 直接从package.json读取
+	static get VERSION() {return VERSION}
+
 	// 创建一个Timeline实例，建议全局使用一个实例来方便同一控制所有行为与动画
 	constructor(config) {
 		config = {

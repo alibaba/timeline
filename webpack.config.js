@@ -1,7 +1,6 @@
-var webpack = require('webpack')
-var path    = require('path')
-var fs      = require('fs')
-// var CompressionPlugin = require("compression-webpack-plugin")
+const webpack = require('webpack');
+const path    = require('path');
+const fs      = require('fs');
 
 process.noDeprecation = true;
 
@@ -15,23 +14,21 @@ function getDemoEntry(dirPath) {
         var fileStat = fs.statSync(filePath);
         if (fileStat.isFile() && reg.test(pageDir[j])) {
             var name = pageDir[j].replace('.js', '');
-            // entries[name] = [filePath, 'webpack-hot-middleware/client?reload=true'];
             entries[name] = [filePath];
         }
     }
     return entries;
 }
 
-var ENTRY = process.env.ENTRY;
-var entry = {};
+const ENTRY = process.env.ENTRY;
+let entry = {};
 if (ENTRY) {
-    // entry[ENTRY] = ['./demo/' + ENTRY + '.js', 'webpack-hot-middleware/client?reload=true'];
     entry[ENTRY] = ['./demo/' + ENTRY + '.js'];
 } else {
     entry = getDemoEntry(path.resolve(__dirname, 'demo/'));
 }
 
-var devtool, output, mode;
+let devtool, output, mode;
 
 if (process.env.NODE_ENV === 'production') {
     console.log("publishing");
@@ -39,8 +36,6 @@ if (process.env.NODE_ENV === 'production') {
     entry = {
         Timeline: [path.resolve("./src/index.js")],
     };
-
-    devtool = undefined;
 
 	output = {
         path: path.resolve("./dist"),
@@ -52,11 +47,9 @@ if (process.env.NODE_ENV === 'production') {
     };
 
     mode = 'production';
-    // devtool = "inline-source-map";
-    // mode = 'development';
 
 } else {
-    console.log("deving");
+    console.log("developing");
 
 	devtool = "inline-source-map";
 
@@ -69,12 +62,15 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 
-var config = {
+const config = {
     entry: entry,
     output: output,
     devtool: devtool,
     plugins: [
         new webpack.NoEmitOnErrorsPlugin(), // 出错时不发布
+		new webpack.DefinePlugin({
+			VERSION: JSON.stringify(require("./package.json").version)
+		}),
     ],
     mode: mode,
 	resolve: {
