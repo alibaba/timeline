@@ -1,6 +1,6 @@
 {
   "name": "@ali/Timeline",
-  "version": "1.2.3",
+  "version": "1.2.5",
   "author": "西萌",
   "description": "时间线系统",
   "main": "dist/Timeline.js",
@@ -17,6 +17,7 @@
     "babel-core": "^6.26.3",
     "babel-loader": "^8.0.4",
     "babel-preset-env": "^1.7.0",
+    "eslint": "^5.12.0",
     "express": "^4.16.3",
     "open": "^0.0.5",
     "webpack": "^4.16.1",
@@ -25,6 +26,8 @@
   },
   "scripts": {
     "start": "node server.js",
-    "dist": "NODE_ENV=production webpack --progress --colors"
+    "dist": "NODE_ENV=production webpack --progress --colors",
+	"lint": "eslint src/*.js",
+	"fix": "eslint src/*.js --fix"
   }
 }

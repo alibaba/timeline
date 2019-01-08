@@ -9,7 +9,6 @@
 // @TODO 拆分动作保证顺序
 // @TODO 所有的操作都应该在tick中执行，保证timeline之间可以同步状态
 
-import Track from './Track';
 import TrackGroup from './TrackGroup';
 import { getTimeNow, raf, cancelRaf } from './utils';
 import Stats from './plugins/stats';
@@ -57,7 +56,7 @@ const MAX_WAIT_QUEUE = 2;
  */
 export default class Timeline extends TrackGroup {
 	// 直接从package.json读取
-	static get VERSION() {return VERSION}
+	static get VERSION() {return VERSION;}
 
 	// 创建一个Timeline实例，建议全局使用一个实例来方便同一控制所有行为与动画
 	constructor(config) {
@@ -112,8 +111,8 @@ export default class Timeline extends TrackGroup {
 		// 不可以在非浏览器渲染线程中使用的接口
 		if (typeof (document) === 'undefined' && (this.config.openStats || this.config.pauseWhenInvisible)) {
 			console.error('can not use `openStats` or `pauseWhenInvisible` due to the running env');
-			this.config.openStats = false
-			this.config.pauseWhenInvisible = false
+			this.config.openStats = false;
+			this.config.pauseWhenInvisible = false;
 		}
 
 		// 显示性能指标
@@ -127,7 +126,7 @@ export default class Timeline extends TrackGroup {
 		// @TODO @FIXME @BUG
 		// 当前版本electron的webview中这个接口行为错乱
 		if (this.config.pauseWhenInvisible) {
-			document.addEventListener("visibilitychange", () => {
+			document.addEventListener('visibilitychange', () => {
 				// 如果已经被控制，则不做判断
 				if (this.origin) return;
 				if (document.hidden) {
@@ -174,7 +173,7 @@ export default class Timeline extends TrackGroup {
 	tick(time) {
 		// 不使用系统时间，假设每两次requestAnimationFrame之间的间距是相等的
 		if (this.config.fixStep) {
-			this._supTimeNow += this.config.fixStep
+			this._supTimeNow += this.config.fixStep;
 		}
 
 		if (time === undefined) {
@@ -195,88 +194,88 @@ export default class Timeline extends TrackGroup {
 			this.seek(time);
 		}
 
-	// @TODO 需要标定 try-catch-finally 在不同浏览器中对性能的影响
-	try {
+		// @TODO 需要标定 try-catch-finally 在不同浏览器中对性能的影响
+		try {
 
-		if (this.stats) this.stats.begin();
+			if (this.stats) this.stats.begin();
 
-		// @NOTE 不使用Track.tick中对于循环的处理
-		if (this.currentTime >= this.duration && this.loop) {
-			if (!this.started) { // 这里用running也一样
-				this.started = true
-				this.running = true
+			// @NOTE 不使用Track.tick中对于循环的处理
+			if (this.currentTime >= this.duration && this.loop) {
+				if (!this.started) { // 这里用running也一样
+					this.started = true;
+					this.running = true;
 
-				this.onInit && this.onInit(time);
-				this.onStart && this.onStart(this.currentTime);
-			} else {
-				this.onEnd && this.onEnd(this.currentTime);
-				this.onStart && this.onStart(this.currentTime);
-			}
-			this.seek(0);
-			for (let i = 0; i < this.tracks.length; i++) {
-				if (this.tracks[i].started) {
-					this.tracks[i].reset()
+					this.onInit && this.onInit(time);
+					this.onStart && this.onStart(this.currentTime);
+				} else {
+					this.onEnd && this.onEnd(this.currentTime);
+					this.onStart && this.onStart(this.currentTime);
+				}
+				this.seek(0);
+				for (let i = 0; i < this.tracks.length; i++) {
+					if (this.tracks[i].started) {
+						this.tracks[i].reset();
+					}
 				}
 			}
-		}
 
-		super.tick(this.currentTime);
+			super.tick(this.currentTime);
 
-		// 同步Timeline
-		this.remoteShadows.forEach(shadow => {
-			const msg = {
-				__timeline_type: 'tick',
-				__timeline_id: this.id,
-				__timeline_shadow_id: shadow.id,
-				__timeline_msg: {
-					currentTime: this.currentTime,
-					duration: this.duration,
-					referenceTime: this.referenceTime,
-				},
-			};
+			// 同步Timeline
+			this.remoteShadows.forEach(shadow => {
+				const msg = {
+					__timeline_type: 'tick',
+					__timeline_id: this.id,
+					__timeline_shadow_id: shadow.id,
+					__timeline_msg: {
+						currentTime: this.currentTime,
+						duration: this.duration,
+						referenceTime: this.referenceTime,
+					},
+				};
 
-			if (shadow.waiting) {
+				if (shadow.waiting) {
 				// 任务执行中，需要排队
 				// console.log('任务执行中，需要排队', shadow.id)
-				if (shadow.waitQueue.length >= MAX_WAIT_QUEUE) {
+					if (shadow.waitQueue.length >= MAX_WAIT_QUEUE) {
 					// 队伍过长，挤掉前面的
 					// console.log('等待队列满，将舍弃过旧的消息')
-					shadow.waitQueue.shift();
-				}
-				shadow.waitQueue.push(msg);
-			} else {
+						shadow.waitQueue.shift();
+					}
+					shadow.waitQueue.push(msg);
+				} else {
 				// @TODO 是否可能在排队却没有任务在执行的情况？
-				if (!shadow.waiting && shadow.waitQueue.length)
-					console.error('在排队却没有任务在执行!!!');
+					if (!shadow.waiting && shadow.waitQueue.length)
+						console.error('在排队却没有任务在执行!!!');
 
-				// 空闲状态，直接执行
-				// f();
-				shadow.waiting = true;
-				shadow.port.postMessage(msg);
+					// 空闲状态，直接执行
+					// f();
+					shadow.waiting = true;
+					shadow.port.postMessage(msg);
+				}
+			});
+
+			this.localShadows.forEach(shadow => {
+				shadow.currentTime = this.currentTime;
+				shadow.duration = this.duration;
+				shadow.referenceTime = this.referenceTime;
+				shadow.tick(this.currentTime);
+			});
+
+			// 自动回收
+			if (this.config.autoRecevery) {
+				this.recovery();
 			}
-		});
 
-		this.localShadows.forEach(shadow => {
-			shadow.currentTime = this.currentTime;
-			shadow.duration = this.duration;
-			shadow.referenceTime = this.referenceTime;
-			shadow.tick(this.currentTime);
-		});
+			if (this.stats) this.stats.end();
 
-		// 自动回收
-		if (this.config.autoRecevery) {
-			this.recovery();
+		} catch (e) {
+			if (!this.config.ignoreErrors || this.config.outputErrors) console.error(e);
+			if (!this.config.ignoreErrors) {
+				this.stop(); // 避免与pauseWhenInvisible冲突
+				return;
+			}
 		}
-
-		if (this.stats) this.stats.end();
-
-	} catch (e) {
-		if (!this.config.ignoreErrors || this.config.outputErrors) console.error(e);
-		if (!this.config.ignoreErrors) {
-			this.stop(); // 避免与pauseWhenInvisible冲突
-			return;
-		}
-	}
 
 		// @NOTE @TODO
 		// 回调中抛出bug不应该导致整个timeline停止，
@@ -369,7 +368,7 @@ export default class Timeline extends TrackGroup {
 
 	clearTimeout(ID) {
 		const track = this.getTracksByID('__timeout__' + ID)[0];
-		if (track) {track.alive = false};
+		if (track) {track.alive = false;}
 	}
 
 	clearInterval(ID) {
@@ -534,11 +533,11 @@ export default class Timeline extends TrackGroup {
 		}
 
 		// 剥夺控制权
-		this.seek = (time) => { this.currentTime = time; return this; }
+		this.seek = (time) => { this.currentTime = time; return this; };
 		// this.tick = () => { console.error('ShadowTimeline shall not be edited derictly!'); }
-		this.play = () => { console.error('ShadowTimeline shall not be edited derictly!'); }
-		this.stop = () => { console.error('ShadowTimeline shall not be edited derictly!'); }
-		this.pause = () => { console.error('ShadowTimeline shall not be edited derictly!'); }
-		this.resume = () => { console.error('ShadowTimeline shall not be edited derictly!'); }
+		this.play = () => { console.error('ShadowTimeline shall not be edited derictly!'); };
+		this.stop = () => { console.error('ShadowTimeline shall not be edited derictly!'); };
+		this.pause = () => { console.error('ShadowTimeline shall not be edited derictly!'); };
+		this.resume = () => { console.error('ShadowTimeline shall not be edited derictly!'); };
 	}
 }

@@ -2,3 +2,8 @@ node_modules/
 src/
 demo/
 temp/
+
+.eslintignore
+.eslintrc.json
+server.js
+webpack.config.js

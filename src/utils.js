@@ -32,7 +32,7 @@ if (typeof (process) !== 'undefined' && process.hrtime !== undefined) {
 	getTimeNow = function () {
 		// 注意hrtime拿到的时间是无意义的，需要进行时间对比
 		const _dtime = process.hrtime(_timePrev);
-		_timePrev = process.hrtime()
+		_timePrev = process.hrtime();
 
 		// Convert [seconds, nanoseconds] to milliseconds.
 		const dtime = _dtime[0] * 1000 + _dtime[1] / 1000000;
@@ -56,7 +56,7 @@ if (typeof (process) !== 'undefined' && process.hrtime !== undefined) {
 
 		_time += dtime > 0 ? dtime : 0;
 		return _time;
-	}
+	};
 
 } else if (Date.now !== undefined) {
 	console.warn('##timeline:: Date.now 低精度时间，建议升级浏览器');
@@ -70,7 +70,7 @@ if (typeof (process) !== 'undefined' && process.hrtime !== undefined) {
 
 		_time += dtime > 0 ? dtime : 0;
 		return _time;
-	}
+	};
 
 } else {
 	console.warn('##timeline:: new Date().getTime() 低精度低性能时间，建议升级浏览器');
@@ -83,7 +83,7 @@ if (typeof (process) !== 'undefined' && process.hrtime !== undefined) {
 
 		_time += dtime > 0 ? dtime : 0;
 		return _time;
-	}
+	};
 
 }
 

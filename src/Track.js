@@ -88,7 +88,7 @@ export default class Track {
 		// 循环次数
 		this.loopTime = 0;
 
-        // 垃圾回收flag
+		// 垃圾回收flag
 		this._alive = true;
 	}
 
@@ -116,7 +116,7 @@ export default class Track {
 
 	reset() {
 		// console.error('track reset');
-		debugger
+		// debugger;
 		if (this.started) {
 			// NOTE: 避免终止位置不正确
 			this.onUpdate && this.onUpdate(this.endTime, 1);
@@ -128,9 +128,9 @@ export default class Track {
 	}
 
 	tick(time) {
-		if (!this.alive) { return }
+		if (!this.alive) { return; }
 
-		this.currentTime = time
+		this.currentTime = time;
 
 		this.inited || this.onInit && this.onInit();
 		this.inited = true;
@@ -146,8 +146,8 @@ export default class Track {
 				this.loopTime = newLoopTime;
 
 				if (!this.started) { // 这里用running也一样
-					this.started = true
-					this.running = true
+					this.started = true;
+					this.running = true;
 
 					this.onStart && this.onStart(this.currentTime);
 					this.onUpdate && this.onUpdate(this.currentTime, this._getP());
@@ -164,7 +164,7 @@ export default class Track {
 		if (this.currentTime < this._startTime) {
 			// Track未开始
 			if (this.started) {
-				this.reset()
+				this.reset();
 			}
 
 		} else if (this.currentTime >= this._endTime) {

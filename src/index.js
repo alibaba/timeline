@@ -3,7 +3,7 @@ import Timeline from './Timeline';
 export default Timeline;
 
 export {
-    Timeline,
+	Timeline,
 };
 
 // 尝试挂到全局 @TODO Node与Worker的区分

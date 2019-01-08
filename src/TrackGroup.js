@@ -1,4 +1,4 @@
-import Track from './Track'
+import Track from './Track';
 
 // 默认配置
 const CONFIG_DEFAULT = {
@@ -17,7 +17,7 @@ export default class TrackGroup extends Track {
 
 		this.config = config;
 
-		this.isTrackGroup = true
+		this.isTrackGroup = true;
 		// 子级Track
 		this.tracks = [];
 		this.children = this.tracks;
@@ -28,10 +28,10 @@ export default class TrackGroup extends Track {
 
 	traverse(f) {
 		// 自己
-		f(this)
+		f(this);
 		// children
-		if (!this.children || this.children.length === 0) return
-		this.children.forEach(c => c.traverse(f))
+		if (!this.children || this.children.length === 0) return;
+		this.children.forEach(c => c.traverse(f));
 	}
 
 	// 垃圾回收
@@ -53,7 +53,7 @@ export default class TrackGroup extends Track {
 	add(props) {
 		// @TODO 子级timeline待测试
 		if (props.isTimeline) {
-			props.tracks.push(props)
+			props.tracks.push(props);
 			props.parent = this;
 			// props.onInit && props.onInit(this.currentTime);
 			return props;
@@ -86,7 +86,7 @@ export default class TrackGroup extends Track {
 		const tracks = [];
 		for (let i = 0; i < this.tracks.length; i++) {
 			if (this.tracks[i].id === id) {
-				tracks.push(this.tracks[i])
+				tracks.push(this.tracks[i]);
 			}
 		}
 		return tracks;
