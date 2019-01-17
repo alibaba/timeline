@@ -147,7 +147,6 @@ timeline.addTrack({
 - `stopTrack(Track)`
     - 停掉一个track，将其alive置为false，
     - 如果还未播放则不会在播放，如果正在播放则会停止，会被下一次recovery执行时被删掉
-    - 也可以只传入Track的UUID: `stopTrack({uuid})`
 
 - `getTracksByID(id)`
     - 返回一个id匹配的track的数组

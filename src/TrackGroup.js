@@ -92,6 +92,14 @@ export default class TrackGroup extends Track {
 		return tracks;
 	}
 
+	/**
+	 * 停止一个track，并标记这个track可被清理
+	 * @param {Track} track 
+	 */
+	stopTrack(track) {
+		track.alive = false
+	}
+
 	clear() {
 		this.tracks = [];
 	}
