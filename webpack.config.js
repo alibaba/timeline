@@ -1,3 +1,8 @@
+/**
+ * Copyright(c) 2017 Alibaba Group Holding Limited
+ * @author Simon
+ */
+
 const webpack = require('webpack');
 const path    = require('path');
 const fs      = require('fs');

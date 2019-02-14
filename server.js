@@ -1,4 +1,5 @@
-/**;
+/**
+ * Copyright(c) 2017 Alibaba Group Holding Limited
  * @author Simon
  * @date 2019-01-08
  */

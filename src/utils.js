@@ -1,3 +1,9 @@
+/**
+ * Copyright (c) 2017 Alibaba Group Holding Limited
+ * Copyright (c) 2010-2012 Tween.js authors
+ * @author Simon(Meng) / gaomeng1900 @gmail.com
+ */
+
 ///////////////
 // polyfills //
 ///////////////

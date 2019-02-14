@@ -1,3 +1,8 @@
+/**
+ * Copyright (c) 2017 Alibaba Group Holding Limited
+ * @author Simon(Meng) / gaomeng1900 @gmail.com
+ */
+
 import Track from './Track';
 
 // 默认配置
