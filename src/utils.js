@@ -96,7 +96,7 @@ if (typeof (process) !== 'undefined' && process.hrtime !== undefined) {
 //  raf
 let raf, cancelRaf;
 
-// NOTE 在Worker和node环境中不存在raf，因此可以使用setTimeout替代
+// 在Worker和node环境中不存在raf，因此可以使用setTimeout替代
 if (typeof requestAnimationFrame !== 'undefined') {
 	raf = requestAnimationFrame;
 	cancelRaf = cancelAnimationFrame;

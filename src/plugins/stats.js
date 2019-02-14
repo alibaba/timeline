@@ -40,19 +40,19 @@ var Stats = function () {
 	var mode = 0;
 
 	var container = document.createElement( 'div' );
-	// @NOTE @SIMON ↓
+	// @edit @SIMON ↓
 	// container.style.cssText = 'position:fixed;top:0;left:0;cursor:pointer;opacity:0.9;z-index:10000';
 	container.style.cssText = 'position:fixed;top:0;left:0;opacity:0.7;z-index:10000';
-	// @NOTE @SIMON ↑
+	// @edit @SIMON ↑
 
-	// @NOTE @SIMON ↓
+	// @edit @SIMON ↓
 	// container.addEventListener( 'click', function ( event ) {
 	//
 	// 	event.preventDefault();
 	// 	showPanel( ++ mode % container.children.length );
 	//
 	// }, false );
-	// @NOTE @SIMON ↑
+	// @edit @SIMON ↑
 
 	//
 
@@ -67,10 +67,10 @@ var Stats = function () {
 
 		for ( var i = 0; i < container.children.length; i ++ ) {
 
-			// @NOTE @SIMON ↓
+			// @edit @SIMON ↓
 			// container.children[ i ].style.display = i === id ? 'block' : 'none';
 			container.children[ i ].style.display = 'block';
-			// @NOTE @SIMON ↑
+			// @edit @SIMON ↑
 
 		}
 
@@ -85,14 +85,14 @@ var Stats = function () {
 	var fpsPanel = addPanel( new Stats.Panel( 'FPS', '#0ff', '#002' ) );
 	var msPanel = addPanel( new Stats.Panel( 'MS', '#0f0', '#020' ) );
 
-	// @NOTE @SIMON ↓
+	// @edit @SIMON ↓
 	// if ( self.performance && self.performance.memory ) {
 	//
 	// 	var memPanel = addPanel( new Stats.Panel( 'MB', '#f08', '#201' ) );
 	//
 	// }
 	var memPanel
-	// @NOTE @SIMON ↑
+	// @edit @SIMON ↑
 
 	showPanel( 0 );
 

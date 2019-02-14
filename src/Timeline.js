@@ -1,16 +1,20 @@
+/**
+ * Copyright (c) 2017 Alibaba Group Holding Limited
+ */
+
 /**************************************************
  * Timeline                                       *
  * Manage All Your Events And Animations Together *
- * @author Meng                                   *
+ * @author Simon(Meng) / gaomeng1900 @gmail.com   *
  **************************************************/
 
-// @TODO 时间排序
-// @TODO 自动排序插入
-// @TODO 拆分动作保证顺序
-// @TODO 所有的操作都应该在tick中执行，保证timeline之间可以同步状态
 
 import TrackGroup from './TrackGroup';
-import { getTimeNow, raf, cancelRaf } from './utils';
+import {
+	getTimeNow,
+	raf,
+	cancelRaf
+} from './utils';
 import Stats from './plugins/stats';
 
 // 默认配置
@@ -56,7 +60,9 @@ const MAX_WAIT_QUEUE = 2;
  */
 export default class Timeline extends TrackGroup {
 	// 直接从package.json读取
-	static get VERSION() {return VERSION;}
+	static get VERSION() {
+		return VERSION;
+	}
 
 	// 创建一个Timeline实例，建议全局使用一个实例来方便同一控制所有行为与动画
 	constructor(config) {
@@ -129,12 +135,16 @@ export default class Timeline extends TrackGroup {
 				// 如果已经被控制，则不做判断
 				if (this.origin) return;
 				if (document.hidden) {
-					if (this._hidden === true) { console.error('document.hidden may not work'); }
+					if (this._hidden === true) {
+						console.error('document.hidden may not work');
+					}
 					this._hidden = true;
 					this._timeBeforeHidden = this.currentTime;
 					cancelRaf(this.animationFrameID);
 				} else {
-					if (this._hidden === false) { console.error('document.hidden may not work'); }
+					if (this._hidden === false) {
+						console.error('document.hidden may not work');
+					}
 					this._hidden = false;
 					this.seek(this._timeBeforeHidden);
 					if (this.playing) {
@@ -145,7 +155,7 @@ export default class Timeline extends TrackGroup {
 		}
 
 		// 更新shadow时间
-		// @TODO 是否和Track等效
+		// @TODO 能否进一步简化，和Track等效
 		this.onUpdate = (time, p) => {
 			// 逐个轨道处理
 			for (let i = 0; i < this.tracks.length; i++) {
@@ -164,11 +174,11 @@ export default class Timeline extends TrackGroup {
 	}
 
 	/**
-	* 每帧调用
-	* 尽快触发下一次回调，避免回调过程中抛出bug导致整个timeline停止运行
-	* 同时需要避免子级故障导致上级停止运行，上级故障可以导致子级停止
-	* @param  {Num}  time  opt, 跳转到特定时间, 单步逐帧播放
-	*/
+	 * 每帧调用
+	 * 尽快触发下一次回调，避免回调过程中抛出bug导致整个timeline停止运行
+	 * 同时需要避免子级故障导致上级停止运行，上级故障可以导致子级停止
+	 * @param  {Num}  time  opt, 跳转到特定时间, 单步逐帧播放
+	 */
 	tick(time) {
 		// 不使用系统时间，假设每两次requestAnimationFrame之间的间距是相等的
 		if (this.config.fixStep) {
@@ -234,16 +244,16 @@ export default class Timeline extends TrackGroup {
 				};
 
 				if (shadow.waiting) {
-				// 任务执行中，需要排队
-				// console.log('任务执行中，需要排队', shadow.id)
+					// 任务执行中，需要排队
+					// console.log('任务执行中，需要排队', shadow.id)
 					if (shadow.waitQueue.length >= MAX_WAIT_QUEUE) {
-					// 队伍过长，挤掉前面的
-					// console.log('等待队列满，将舍弃过旧的消息')
+						// 队伍过长，挤掉前面的
+						// console.log('等待队列满，将舍弃过旧的消息')
 						shadow.waitQueue.shift();
 					}
 					shadow.waitQueue.push(msg);
 				} else {
-				// @TODO 是否可能在排队却没有任务在执行的情况？
+					// @TODO 是否可能在排队却没有任务在执行的情况？
 					if (!shadow.waiting && shadow.waitQueue.length)
 						console.error('在排队却没有任务在执行!!!');
 
@@ -341,7 +351,7 @@ export default class Timeline extends TrackGroup {
 	// 重写Dom标准中的 setTimeout
 	setTimeout(callback, time = 10) {
 		if (time < 0) time = 0;
-		const ID = this._timeoutID ++;
+		const ID = this._timeoutID++;
 		this.addTrack({
 			id: '__timeout__' + ID,
 			startTime: this.currentTime + time,
@@ -355,7 +365,7 @@ export default class Timeline extends TrackGroup {
 	// 重写Dom标准中的 setInterval
 	setInterval(callback, time = 10) {
 		if (time < 0) time = 0;
-		const ID = this._timeoutID ++;
+		const ID = this._timeoutID++;
 		this.addTrack({
 			id: '__timeout__' + ID,
 			startTime: this.currentTime + time,
@@ -368,7 +378,9 @@ export default class Timeline extends TrackGroup {
 
 	clearTimeout(ID) {
 		const track = this.getTracksByID('__timeout__' + ID)[0];
-		if (track) {track.alive = false;}
+		if (track) {
+			track.alive = false;
+		}
 	}
 
 	clearInterval(ID) {
@@ -547,11 +559,22 @@ export default class Timeline extends TrackGroup {
 		}
 
 		// 剥夺控制权
-		this.seek = (time) => { this.currentTime = time; return this; };
+		this.seek = (time) => {
+			this.currentTime = time;
+			return this;
+		};
 		// this.tick = () => { console.error('ShadowTimeline shall not be edited derictly!'); }
-		this.play = () => { console.error('ShadowTimeline shall not be edited derictly!'); };
-		this.stop = () => { console.error('ShadowTimeline shall not be edited derictly!'); };
-		this.pause = () => { console.error('ShadowTimeline shall not be edited derictly!'); };
-		this.resume = () => { console.error('ShadowTimeline shall not be edited derictly!'); };
+		this.play = () => {
+			console.error('ShadowTimeline shall not be edited derictly!');
+		};
+		this.stop = () => {
+			console.error('ShadowTimeline shall not be edited derictly!');
+		};
+		this.pause = () => {
+			console.error('ShadowTimeline shall not be edited derictly!');
+		};
+		this.resume = () => {
+			console.error('ShadowTimeline shall not be edited derictly!');
+		};
 	}
 }
