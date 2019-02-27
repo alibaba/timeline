@@ -5,9 +5,6 @@
   "description": "时间线系统",
   "main": "dist/Timeline.js",
   "license": "ISC",
-  "publishConfig": {
-    "registry": "http://registry.npm.alibaba-inc.com"
-  },
   "dependencies": {},
   "devDependencies": {
     "@babel/core": "^7.2.2",

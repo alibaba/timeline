@@ -16,8 +16,6 @@ Timeline的设计原则是：无论何时从任意时间跳到任意时间，总
 
 `tnpm i --save @ali/Timeline`
 
-![](http://web.npm.alibaba-inc.com/badge/v/@ali/Timeline.svg?style=flat-square)![](http://web.npm.alibaba-inc.com/badge/d/@ali/Timeline.svg?style=flat-square)
-
 支持环境: `broswer`、`WebWorker`、`node.js`、`electron`、`webview`
 
 ---
