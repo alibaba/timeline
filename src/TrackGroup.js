@@ -41,12 +41,16 @@ export default class TrackGroup extends Track {
 
 	// 垃圾回收
 	recovery() {
+		// @des 性能过差
 		// 倒序删除，以免数组索引混乱
-		for (let i = this.tracks.length - 1; i >= 0; i--) {
-			if (!this.tracks[i].alive) {
-				this.tracks.splice(i, 1);
-			}
-		}
+		// for (let i = this.tracks.length - 1; i >= 0; i--) {
+		// 	if (!this.tracks[i].alive) {
+		// 		this.tracks.splice(i, 1);
+		// 	}
+		// }
+
+		// @NOTE GC
+		this.tracks = this.tracks.filter(track => track.alive);
 	}
 
 	/**

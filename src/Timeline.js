@@ -272,9 +272,11 @@ export default class Timeline extends TrackGroup {
 			});
 
 			// 自动回收
+			// console.time('recovery')
 			if (this.config.autoRecevery) {
 				this.recovery();
 			}
+			// console.timeEnd('recovery')
 
 			if (this.stats) this.stats.end();
 
