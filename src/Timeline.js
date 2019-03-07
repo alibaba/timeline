@@ -53,6 +53,9 @@ const CONFIG_DEFAULT = {
 	onStart: () => {},
 	onEnd: () => {},
 	onUpdate: () => {},
+
+	// 帧率限制造成的跳帧，用于再外部判断当前性能是否剩余
+	onSkipFrame: () => {},
 };
 
 // 最大等待队列，超出后将舍弃最久的pull request
@@ -201,6 +204,7 @@ export default class Timeline extends TrackGroup {
 			// FPS限制
 			if (currentTime - this.currentTime < this.minFrame) {
 				this.animationFrameID = raf(() => this.tick());
+				this.config.onSkipFrame();
 				return this;
 			}
 			this._lastCurrentTime = this.currentTime;
