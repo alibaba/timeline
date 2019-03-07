@@ -45,6 +45,10 @@ const CONFIG_DEFAULT = {
 	// 开启性能面板
 	openStats: false,
 
+	// 记录FPS
+	// recordFPS: true,
+	recordFPSDecay: 0.5,
+
 	onInit: () => {},
 	onStart: () => {},
 	onEnd: () => {},
@@ -53,6 +57,9 @@ const CONFIG_DEFAULT = {
 
 // 最大等待队列，超出后将舍弃最久的pull request
 const MAX_WAIT_QUEUE = 2;
+
+// FPS recorder
+const MAX_FPS_RECORD = 30;
 
 /**
  * Timeline 🌺 🌺 🌺
@@ -113,6 +120,10 @@ export default class Timeline extends TrackGroup {
 
 		this.origin;
 		this.config.origin && (this.setOrigin(this.config.origin));
+
+		// 统计FPS
+		this.fps = 0;
+		this.frametime = 0;
 
 		// 不可以在非浏览器渲染线程中使用的接口
 		if (typeof (document) === 'undefined' && (this.config.openStats || this.config.pauseWhenInvisible)) {
@@ -205,6 +216,10 @@ export default class Timeline extends TrackGroup {
 
 		// @TODO 需要标定 try-catch-finally 在不同浏览器中对性能的影响
 		try {
+			// 帧率统计
+			this.frametime = this.frametime * (1 - this.config.recordFPSDecay) + 
+				(this.currentTime - this._lastCurrentTime) * this.config.recordFPSDecay;
+			this.fps = 1000 / this.frametime;
 
 			if (this.stats) this.stats.begin();
 
@@ -578,5 +593,11 @@ export default class Timeline extends TrackGroup {
 		this.resume = () => {
 			console.error('ShadowTimeline shall not be edited derictly!');
 		};
+	}
+
+	// 更新maxFPS
+	updateMaxFPS(maxFPS) {
+		this.config.maxFPS = maxFPS;
+		this.minFrame = 900 / this.config.maxFPS;
 	}
 }

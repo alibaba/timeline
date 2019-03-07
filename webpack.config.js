@@ -42,6 +42,8 @@ if (process.env.NODE_ENV === 'production') {
         Timeline: [path.resolve("./src/index.js")],
     };
 
+    devtool = 'source-map'; // 把sourcemap作为单独的文件发布上去
+
 	output = {
         path: path.resolve("./dist"),
         publicPath: "/", // 为使内网可访问, 不指明host
