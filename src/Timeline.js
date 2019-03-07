@@ -505,6 +505,7 @@ export default class Timeline extends TrackGroup {
 					onStart: null,
 					onUpdate: null,
 					onEnd: null,
+					onSkipFrame: null,
 				},
 				// __timeline_timenow: this.referenceTime,
 			});
