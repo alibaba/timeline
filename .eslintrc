@@ -1,9 +1,13 @@
 {
 	"extends": "standard",
+	"globals": {
+		"Timeline": true
+	},
 	"env": {
 		"browser": true,
 		"mocha": true,
-		"node": true
+		"node": true,
+		"worker": true
 	},
 	"parser": "babel-eslint",
 	"rules": {
