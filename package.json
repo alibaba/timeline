@@ -1,6 +1,6 @@
 {
 	"name": "@ali/Timeline",
-	"version": "1.2.15",
+	"version": "beta-1.2.16",
 	"author": "西萌",
 	"description": "时间线系统",
 	"main": "dist/Timeline.js",
@@ -9,6 +9,7 @@
 	"devDependencies": {
 		"@babel/core": "^7.4.0",
 		"@babel/plugin-proposal-object-rest-spread": "^7.4.0",
+		"@babel/plugin-proposal-class-properties": "^7.4.0",
 		"@babel/preset-env": "^7.4.2",
 		"babel-cli": "^6.26.0",
 		"babel-core": "^6.26.3",
@@ -32,7 +33,7 @@
 	},
 	"scripts": {
 		"start": "node --max-old-space-size=8192 server.js",
-		"build": "webpack --config webpack.config.prod.js",
+		"dist": "webpack --config webpack.config.prod.js",
 		"watch": "webpack --config webpack.config.prod.js --watch",
 		"autofix": "eslint --fix ./",
 		"lint": "eslint ./"

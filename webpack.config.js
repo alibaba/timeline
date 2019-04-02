@@ -1,7 +1,7 @@
-var webpack = require('webpack')
-var path = require('path')
-var fs = require('fs')
-var ProgressBarPlugin = require('progress-bar-webpack-plugin')
+const webpack = require('webpack')
+const path = require('path')
+const fs = require('fs')
+const ProgressBarPlugin = require('progress-bar-webpack-plugin')
 
 process.noDeprecation = true
 
