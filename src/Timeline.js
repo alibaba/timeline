@@ -303,7 +303,7 @@ export default class Timeline extends TrackGroup {
 			if (!this.config.ignoreErrors || this.config.outputErrors) console.error(e);
 			if (!this.config.ignoreErrors) {
 				this.stop(); // 避免与pauseWhenInvisible冲突
-				return;
+				throw e;
 			}
 		}
 
