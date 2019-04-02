@@ -3,6 +3,4 @@ node_modules/
 temp/
 npm-debug.log
 build/
-assets/tile/*.json
-assets/*.json
 dist/
