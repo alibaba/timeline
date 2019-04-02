@@ -3,29 +3,29 @@
  * @author Simon(Meng) / gaomeng1900 @gmail.com
  */
 
-import Track from './Track';
+import Track from './Track'
 
 // 默认配置
 const CONFIG_DEFAULT = {
 	duration: Infinity,
 	loop: false,
-};
+}
 
 export default class TrackGroup extends Track {
 	constructor(config) {
 		config = {
 			...CONFIG_DEFAULT,
 			...config,
-		};
+		}
 
-		super(config);
+		super(config)
 
-		this.config = config;
+		this.config = config
 
-		this.isTrackGroup = true;
+		this.isTrackGroup = true
 		// 子级Track
-		this.tracks = [];
-		this.children = this.tracks;
+		this.tracks = []
+		this.children = this.tracks
 
 		// this.currentTime = 0; // timeLocal
 		// this.duration = this.config.duration;
@@ -33,10 +33,10 @@ export default class TrackGroup extends Track {
 
 	traverse(f) {
 		// 自己
-		f(this);
+		f(this)
 		// children
-		if (!this.children || this.children.length === 0) return;
-		this.children.forEach(c => c.traverse(f));
+		if (!this.children || this.children.length === 0) return
+		this.children.forEach(c => c.traverse(f))
 	}
 
 	// 垃圾回收
@@ -50,7 +50,7 @@ export default class TrackGroup extends Track {
 		// }
 
 		// @NOTE GC
-		this.tracks = this.tracks.filter(track => track.alive);
+		this.tracks = this.tracks.filter(track => track.alive)
 	}
 
 	/**
@@ -58,31 +58,33 @@ export default class TrackGroup extends Track {
 	 * @param {Object} props 配置项，详见Track.constructor
 	 * @return {Track} 所创建的Track
 	 */
-	addTrack(props) {return this.add(props);}
+	addTrack(props) {
+		return this.add(props)
+	}
 	add(props) {
 		// @TODO 子级timeline待测试
 		if (props.isTimeline) {
-			props.tracks.push(props);
-			props.parent = this;
+			props.tracks.push(props)
+			props.parent = this
 			// props.onInit && props.onInit(this.currentTime);
-			return props;
+			return props
 		} else if (props.isTrack) {
-			const track = props;
+			const track = props
 			// track._safeClip(this.duration);
 			if (track.parent) {
-				track.parent.remove(track);
+				track.parent.remove(track)
 			}
-			track.parent = this;
+			track.parent = this
 			// track.onInit && track.onInit(this.currentTime);
-			this.tracks.push(track);
-			return track;
+			this.tracks.push(track)
+			return track
 		} else {
-			const track = new Track(props);
+			const track = new Track(props)
 			// track._safeClip(this.duration);
-			track.parent = this;
+			track.parent = this
 			// track.onInit && track.onInit(this.currentTime);
-			this.tracks.push(track);
-			return track;
+			this.tracks.push(track)
+			return track
 		}
 	}
 
@@ -92,24 +94,24 @@ export default class TrackGroup extends Track {
 	 * @return {Array(Track)}
 	 */
 	getTracksByID(id) {
-		const tracks = [];
+		const tracks = []
 		for (let i = 0; i < this.tracks.length; i++) {
 			if (this.tracks[i].id === id) {
-				tracks.push(this.tracks[i]);
+				tracks.push(this.tracks[i])
 			}
 		}
-		return tracks;
+		return tracks
 	}
 
 	/**
 	 * 停止一个track，并标记这个track可被清理
-	 * @param {Track} track 
+	 * @param {Track} track
 	 */
 	stopTrack(track) {
 		track.alive = false
 	}
 
 	clear() {
-		this.tracks = [];
+		this.tracks = []
 	}
 }

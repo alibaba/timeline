@@ -7,8 +7,7 @@
  * @author Meng       *
  **********************/
 
-
-let __trackUUID = 0; // 避免uuid重复
+let __trackUUID = 0 // 避免uuid重复
 
 /**
  * Track 🚀 🚀 🚀
@@ -33,179 +32,202 @@ export default class Track {
 	 // * @param {Func} onInit - 首次开始时的回调
 	 * @param {Func} easing - easing - 缓动函数 p => p
 	 */
-	constructor({ id, loop, startTime = 0, endTime, duration,
-				  onStart, onEnd, onUpdate, onInit, easing, }) {
-		this.id = id !== undefined ? id : '';
-		this.uuid = '' + Math.random() + __trackUUID ++;
-		this.isTrack = true;
+	constructor({
+		id,
+		loop,
+		startTime = 0,
+		endTime,
+		duration,
+		onStart,
+		onEnd,
+		onUpdate,
+		onInit,
+		easing,
+	}) {
+		this.id = id !== undefined ? id : ''
+		this.uuid = '' + Math.random() + __trackUUID++
+		this.isTrack = true
 
-		this._startTime = startTime;
-		this._endTime = endTime;
-		this.onStart = onStart;
-		this.onEnd = onEnd;
-		this.onUpdate = onUpdate;
-		this.onInit = onInit;
-		this.loop = loop;
-		this.easing = easing;
+		this._startTime = startTime
+		this._endTime = endTime
+		this.onStart = onStart
+		this.onEnd = onEnd
+		this.onUpdate = onUpdate
+		this.onInit = onInit
+		this.loop = loop
+		this.easing = easing
 
-		if (this.easing && (this.easing(0) !== 0 || this.easing(1) !== 1) ) {
-			console.warn('ease函数错误，（easing(0) should be 0, easing(1) should be 1）');
+		if (this.easing && (this.easing(0) !== 0 || this.easing(1) !== 1)) {
+			console.warn('ease函数错误，（easing(0) should be 0, easing(1) should be 1）')
 		}
 
-		this.currentTime = 0; // timeLocal
+		this.currentTime = 0 // timeLocal
 
 		// 保证只被add一次
-		this._taken = false;
-
+		this._taken = false
 
 		// 计算duration和endTime，处理endTime与duration不一致的情况
 
-		let _duration = duration; // es lint
+		let _duration = duration // es lint
 
 		// TODO 测试duration 0 的情况
 		// NOTE 处理0
 		// if (!_duration && !endTime) {
-		if ((_duration - 0 !== _duration) && (endTime - 0 !== endTime)) {
-			_duration = Infinity;
+		if (_duration - 0 !== _duration && endTime - 0 !== endTime) {
+			_duration = Infinity
 		}
 
 		if (_duration - 0 === _duration) {
-			this._duration = _duration;
-			this._endTime = startTime + _duration;
+			this._duration = _duration
+			this._endTime = startTime + _duration
 		}
 
 		if (endTime - 0 === endTime) {
-			this._duration = endTime - startTime;
+			this._duration = endTime - startTime
 			if (this._endTime !== endTime) {
-				console.warn('endTime与duration不一致，将以endTime为准');
-				this._endTime = endTime;
+				console.warn('endTime与duration不一致，将以endTime为准')
+				this._endTime = endTime
 			}
 		}
 
 		if (this._startTime < 0 || this._endTime < this._startTime) {
-			throw new Error('wrong parameters');
+			throw new Error('wrong parameters')
 		}
 
-		this.running = false; // 运行中
-		this.inited = false; // 初始化完成
-		this.started = false; // 本轮播放过
+		this.running = false // 运行中
+		this.inited = false // 初始化完成
+		this.started = false // 本轮播放过
 		// 循环次数
-		this.loopTime = 0;
+		this.loopTime = 0
 
 		// 垃圾回收flag
-		this._alive = true;
+		this._alive = true
 	}
 
-	get startTime() { return this._startTime; }
+	get startTime() {
+		return this._startTime
+	}
 	set startTime(newTime) {
 		// TODO: 这部分修改之后需要重新校验
-		this._startTime = newTime;
-		this._endTime = this._startTime + this._duration;
+		this._startTime = newTime
+		this._endTime = this._startTime + this._duration
 	}
 
-	get endTime() { return this._endTime; }
+	get endTime() {
+		return this._endTime
+	}
 	set endTime(newTime) {
-		this._endTime = newTime;
-		this._duration = this._endTime = this._startTime;
+		this._endTime = newTime
+		this._duration = this._endTime = this._startTime
 	}
 
-	get duration() { return this._duration; }
+	get duration() {
+		return this._duration
+	}
 	set duration(newTime) {
-		this._duration = newTime;
-		this._endTime = this._startTime + this._duration;
+		this._duration = newTime
+		this._endTime = this._startTime + this._duration
 	}
 
-	get alive() { return this._alive; }
-	set alive(v) { this._alive = v; }
+	get alive() {
+		return this._alive
+	}
+	set alive(v) {
+		this._alive = v
+	}
 
 	reset() {
 		// console.error('track reset');
 		// debugger;
 		if (this.started) {
 			// NOTE: 避免终止位置不正确
-			this.onUpdate && this.onUpdate(this.endTime, 1);
-			this.onEnd && this.onEnd(this.endTime);
-			this.inited = false;
-			this.started = false;
-			this.running = false;
+			this.onUpdate && this.onUpdate(this.endTime, 1)
+			this.onEnd && this.onEnd(this.endTime)
+			this.inited = false
+			this.started = false
+			this.running = false
 		}
 	}
 
 	tick(time) {
-		if (!this.alive) { return; }
+		if (!this.alive) {
+			return
+		}
 
-		this.currentTime = time;
+		this.currentTime = time
 
-		this.inited || this.onInit && this.onInit();
-		this.inited = true;
+		this.inited || (this.onInit && this.onInit())
+		this.inited = true
 
 		// TODO: 使用循环时，onEnd如何处理？暂时不处理
 		if (this.loop && this.currentTime >= this._endTime) {
 			// 循环次数, 处理onStart onEnd
-			const newLoopTime = Math.floor((this.currentTime - this._startTime) / this._duration);
-			this.currentTime = (this.currentTime - this._startTime) % this._duration + this._startTime;
+			const newLoopTime = Math.floor((this.currentTime - this._startTime) / this._duration)
+			this.currentTime =
+				((this.currentTime - this._startTime) % this._duration) + this._startTime
 
 			if (this.loopTime !== newLoopTime) {
 				// 新的一轮循环
-				this.loopTime = newLoopTime;
+				this.loopTime = newLoopTime
 
-				if (!this.started) { // 这里用running也一样
-					this.started = true;
-					this.running = true;
+				if (!this.started) {
+					// 这里用running也一样
+					this.started = true
+					this.running = true
 
-					this.onStart && this.onStart(this.currentTime);
-					this.onUpdate && this.onUpdate(this.currentTime, this._getP());
+					this.onStart && this.onStart(this.currentTime)
+					this.onUpdate && this.onUpdate(this.currentTime, this._getP())
 				} else {
-					this.onEnd && this.onEnd(this.currentTime);
-					this.onStart && this.onStart(this.currentTime);
+					this.onEnd && this.onEnd(this.currentTime)
+					this.onStart && this.onStart(this.currentTime)
 					// @BUG easing
-					this.onUpdate && this.onUpdate(this.currentTime, this._getP());
+					this.onUpdate && this.onUpdate(this.currentTime, this._getP())
 				}
-				return;
+				return
 			}
 		}
 
 		if (this.currentTime < this._startTime) {
 			// Track未开始
 			if (this.started) {
-				this.reset();
+				this.reset()
 			}
-
 		} else if (this.currentTime >= this._endTime) {
 			// Track已结束
 			if (this.running) {
-				this.running = false;
+				this.running = false
 				// NOTE: 避免终止位置不正确
-				this.onUpdate && this.onUpdate(this.currentTime, 1);
-				this.onEnd && this.onEnd(this.currentTime);
+				this.onUpdate && this.onUpdate(this.currentTime, 1)
+				this.onEnd && this.onEnd(this.currentTime)
 			} else if (!this.started) {
 				// NOTE: 避免整个动画被跳过，起码要播一下最后一帧
 				// @TODO 这里的time传哪个
-				this.onStart && this.onStart(this.currentTime);
-				this.onUpdate && this.onUpdate(this.currentTime, 1);
-				this.onEnd && this.onEnd(this.currentTime);
-				this.started = true;
+				this.onStart && this.onStart(this.currentTime)
+				this.onUpdate && this.onUpdate(this.currentTime, 1)
+				this.onEnd && this.onEnd(this.currentTime)
+				this.started = true
 			}
 			// 过期而且不循环（循环的情况在上面处理）
-			this.alive = false;
-
+			this.alive = false
 		} else {
 			// Track运行中
 			if (!this.running) {
-				this.running = true;
+				this.running = true
 				// this.inited = false;
-				this.started = true;
-				this.onStart && this.onStart(this.currentTime);
+				this.started = true
+				this.onStart && this.onStart(this.currentTime)
 			}
 
-			this.onUpdate && this.onUpdate(this.currentTime, this._getP());
+			this.onUpdate && this.onUpdate(this.currentTime, this._getP())
 		}
 	}
 
 	_getP() {
-		let p = (this.currentTime - this._startTime) / this._duration;
+		let p = (this.currentTime - this._startTime) / this._duration
 		// 缓动
-		if (this.easing) { p = this.easing(p); }
-		return p;
+		if (this.easing) {
+			p = this.easing(p)
+		}
+		return p
 	}
 }

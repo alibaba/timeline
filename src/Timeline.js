@@ -8,14 +8,9 @@
  * @author Simon(Meng) / gaomeng1900 @gmail.com   *
  **************************************************/
 
-
-import TrackGroup from './TrackGroup';
-import {
-	getTimeNow,
-	raf,
-	cancelRaf
-} from './utils';
-import Stats from './plugins/stats';
+import TrackGroup from './TrackGroup'
+import { getTimeNow, raf, cancelRaf } from './utils'
+import Stats from './plugins/stats'
 
 // 默认配置
 const CONFIG_DEFAULT = {
@@ -56,13 +51,13 @@ const CONFIG_DEFAULT = {
 
 	// 帧率限制造成的跳帧，用于再外部判断当前性能是否剩余
 	onSkipFrame: () => {},
-};
+}
 
 // 最大等待队列，超出后将舍弃最久的pull request
-const MAX_WAIT_QUEUE = 2;
+const MAX_WAIT_QUEUE = 2
 
 // FPS recorder
-const MAX_FPS_RECORD = 30;
+// const MAX_FPS_RECORD = 30
 
 /**
  * Timeline 🌺 🌺 🌺
@@ -71,7 +66,7 @@ const MAX_FPS_RECORD = 30;
 export default class Timeline extends TrackGroup {
 	// 直接从package.json读取
 	static get VERSION() {
-		return VERSION;
+		return VERSION
 	}
 
 	// 创建一个Timeline实例，建议全局使用一个实例来方便同一控制所有行为与动画
@@ -79,68 +74,71 @@ export default class Timeline extends TrackGroup {
 		config = {
 			...CONFIG_DEFAULT,
 			...config,
-		};
+		}
 
-		config.startTime = 0;
+		config.startTime = 0
 
-		super(config);
+		super(config)
 
-		this.config = config;
-		this.isTimeline = true;
+		this.config = config
+		this.isTimeline = true
 
-		this.duration = this.config.duration;
+		this.duration = this.config.duration
 		// this.loop = this.config.loop;
 
 		// 频率限制
-		this.minFrame = 900 / this.config.maxFPS;
+		this.minFrame = 900 / this.config.maxFPS
 
 		// this.tracks = [];
 
 		// this.currentTime = 0; // timeLocal
-		this._lastCurrentTime = 0;
-		this.referenceTime = this._getTimeNow(); // 参考时间
+		this._lastCurrentTime = 0
+		this.referenceTime = this._getTimeNow() // 参考时间
 
-		this.animationFrameID = 0;
+		this.animationFrameID = 0
 
-		this.playing = false;
+		this.playing = false
 
 		// this.cbkEnd = [];
 
 		// this._ticks = []; // 把需要执行的tick排序执行（orderGuarantee）
 
-		this._hidden = null; // used to detect if `document.hidden` works correctly (may not in webviews)
-		this._timeBeforeHidden = 0;
-		this._timeBeforePaused = 0;
+		this._hidden = null // used to detect if `document.hidden` works correctly (may not in webviews)
+		this._timeBeforeHidden = 0
+		this._timeBeforePaused = 0
 
-		this._timeoutID = 0; // 用于给setTimeout和setInterval分配ID
+		this._timeoutID = 0 // 用于给setTimeout和setInterval分配ID
 
-		this._supTimeNow = 0;
+		this._supTimeNow = 0
 
-		this.ports = [];
-		this.listeners = [];
+		this.ports = []
+		this.listeners = []
 
-		this.localShadows = [];
-		this.remoteShadows = [];
+		this.localShadows = []
+		this.remoteShadows = []
 
-		this.origin;
-		this.config.origin && (this.setOrigin(this.config.origin));
+		// this.origin
+		this.config.origin && this.setOrigin(this.config.origin)
 
 		// 统计FPS
-		this.fps = 0;
-		this.frametime = 0;
+		this.fps = 0
+		this.frametime = 0
 
 		// 不可以在非浏览器渲染线程中使用的接口
-		if (typeof (document) === 'undefined' && (this.config.openStats || this.config.pauseWhenInvisible)) {
-			console.error('can not use `openStats` or `pauseWhenInvisible` due to the running env');
-			this.config.openStats = false;
-			this.config.pauseWhenInvisible = false;
+		if (
+			typeof document === 'undefined' &&
+			(this.config.openStats || this.config.pauseWhenInvisible)
+		) {
+			console.error('can not use `openStats` or `pauseWhenInvisible` due to the running env')
+			this.config.openStats = false
+			this.config.pauseWhenInvisible = false
 		}
 
 		// 显示性能指标
 		if (this.config.openStats) {
-			this.stats = new Stats();
-			this.stats.showPanel(0);
-			document.body.appendChild(this.stats.dom);
+			this.stats = new Stats()
+			this.stats.showPanel(0)
+			document.body.appendChild(this.stats.dom)
 		}
 
 		// 页面不可见时暂停计时
@@ -148,25 +146,25 @@ export default class Timeline extends TrackGroup {
 		if (this.config.pauseWhenInvisible) {
 			document.addEventListener('visibilitychange', () => {
 				// 如果已经被控制，则不做判断
-				if (this.origin) return;
+				if (this.origin) return
 				if (document.hidden) {
 					if (this._hidden === true) {
-						console.error('document.hidden may not work');
+						console.error('document.hidden may not work')
 					}
-					this._hidden = true;
-					this._timeBeforeHidden = this.currentTime;
-					cancelRaf(this.animationFrameID);
+					this._hidden = true
+					this._timeBeforeHidden = this.currentTime
+					cancelRaf(this.animationFrameID)
 				} else {
 					if (this._hidden === false) {
-						console.error('document.hidden may not work');
+						console.error('document.hidden may not work')
 					}
-					this._hidden = false;
-					this.seek(this._timeBeforeHidden);
+					this._hidden = false
+					this.seek(this._timeBeforeHidden)
 					if (this.playing) {
-						this.tick();
+						this.tick()
 					}
 				}
-			});
+			})
 		}
 
 		// 更新shadow时间
@@ -174,18 +172,18 @@ export default class Timeline extends TrackGroup {
 		this.onUpdate = (time, p) => {
 			// 逐个轨道处理
 			for (let i = 0; i < this.tracks.length; i++) {
-				this.tracks[i].tick(time);
+				this.tracks[i].tick(time)
 			}
 
-			this.config.onUpdate && this.config.onUpdate(time, p);
-		};
+			this.config.onUpdate && this.config.onUpdate(time, p)
+		}
 	}
 
 	// 相对时间，只能用来计算差值
 	_getTimeNow() {
 		// NOTE 固定帧长的话，则直接在当前时间（this.getTime()）基础上加上帧长，但是referenceTime首次计算时为undefined
 		// return this.config.fixStep ? ((this.referenceTime || 0) + this.currentTime + this.config.fixStep) : getTimeNow();
-		return this.config.fixStep ? this._supTimeNow : getTimeNow();
+		return this.config.fixStep ? this._supTimeNow : getTimeNow()
 	}
 
 	/**
@@ -197,58 +195,60 @@ export default class Timeline extends TrackGroup {
 	tick(time) {
 		// 不使用系统时间，假设每两次requestAnimationFrame之间的间距是相等的
 		if (this.config.fixStep) {
-			this._supTimeNow += this.config.fixStep;
+			this._supTimeNow += this.config.fixStep
 		}
 
 		if (time === undefined) {
-			const currentTime = this._getTimeNow() - this.referenceTime;
+			const currentTime = this._getTimeNow() - this.referenceTime
 			// FPS限制
 			if (currentTime - this.currentTime < this.minFrame) {
-				this.animationFrameID = raf(() => this.tick());
-				this.config.onSkipFrame();
-				return this;
+				this.animationFrameID = raf(() => this.tick())
+				this.config.onSkipFrame()
+				return this
 			}
-			this._lastCurrentTime = this.currentTime;
-			this.currentTime = currentTime;
+			this._lastCurrentTime = this.currentTime
+			this.currentTime = currentTime
 			// 最长帧限制
-			const step = this.currentTime - this._lastCurrentTime;
+			const step = this.currentTime - this._lastCurrentTime
 			if (step > this.config.maxStep) {
-				this.seek(this._lastCurrentTime + this.config.maxStep);
+				this.seek(this._lastCurrentTime + this.config.maxStep)
 			}
 		} else {
-			this.seek(time);
+			this.seek(time)
 		}
 
 		// @TODO 需要标定 try-catch-finally 在不同浏览器中对性能的影响
 		try {
 			// 帧率统计
-			this.frametime = this.frametime * (1 - this.config.recordFPSDecay) + 
-				(this.currentTime - this._lastCurrentTime) * this.config.recordFPSDecay;
-			this.fps = 1000 / this.frametime;
+			this.frametime =
+				this.frametime * (1 - this.config.recordFPSDecay) +
+				(this.currentTime - this._lastCurrentTime) * this.config.recordFPSDecay
+			this.fps = 1000 / this.frametime
 
-			if (this.stats) this.stats.begin();
+			if (this.stats) this.stats.begin()
 
 			// @NOTE 不使用Track.tick中对于循环的处理
 			if (this.currentTime >= this.duration && this.loop) {
-				if (!this.started) { // 这里用running也一样
-					this.started = true;
-					this.running = true;
+				if (!this.started) {
+					// 这里用running也一样
+					this.started = true
+					this.running = true
 
-					this.onInit && this.onInit(time);
-					this.onStart && this.onStart(this.currentTime);
+					this.onInit && this.onInit(time)
+					this.onStart && this.onStart(this.currentTime)
 				} else {
-					this.onEnd && this.onEnd(this.currentTime);
-					this.onStart && this.onStart(this.currentTime);
+					this.onEnd && this.onEnd(this.currentTime)
+					this.onStart && this.onStart(this.currentTime)
 				}
-				this.seek(0);
+				this.seek(0)
 				for (let i = 0; i < this.tracks.length; i++) {
 					if (this.tracks[i].started) {
-						this.tracks[i].reset();
+						this.tracks[i].reset()
 					}
 				}
 			}
 
-			super.tick(this.currentTime);
+			super.tick(this.currentTime)
 
 			// 同步Timeline
 			this.remoteShadows.forEach(shadow => {
@@ -261,7 +261,7 @@ export default class Timeline extends TrackGroup {
 						duration: this.duration,
 						referenceTime: this.referenceTime,
 					},
-				};
+				}
 
 				if (shadow.waiting) {
 					// 任务执行中，需要排队
@@ -269,42 +269,41 @@ export default class Timeline extends TrackGroup {
 					if (shadow.waitQueue.length >= MAX_WAIT_QUEUE) {
 						// 队伍过长，挤掉前面的
 						// console.log('等待队列满，将舍弃过旧的消息')
-						shadow.waitQueue.shift();
+						shadow.waitQueue.shift()
 					}
-					shadow.waitQueue.push(msg);
+					shadow.waitQueue.push(msg)
 				} else {
 					// @TODO 是否可能在排队却没有任务在执行的情况？
 					if (!shadow.waiting && shadow.waitQueue.length)
-						console.error('在排队却没有任务在执行!!!');
+						console.error('在排队却没有任务在执行!!!')
 
 					// 空闲状态，直接执行
 					// f();
-					shadow.waiting = true;
-					shadow.port.postMessage(msg);
+					shadow.waiting = true
+					shadow.port.postMessage(msg)
 				}
-			});
+			})
 
 			this.localShadows.forEach(shadow => {
-				shadow.currentTime = this.currentTime;
-				shadow.duration = this.duration;
-				shadow.referenceTime = this.referenceTime;
-				shadow.tick(this.currentTime);
-			});
+				shadow.currentTime = this.currentTime
+				shadow.duration = this.duration
+				shadow.referenceTime = this.referenceTime
+				shadow.tick(this.currentTime)
+			})
 
 			// 自动回收
 			// console.time('recovery')
 			if (this.config.autoRecevery) {
-				this.recovery();
+				this.recovery()
 			}
 			// console.timeEnd('recovery')
 
-			if (this.stats) this.stats.end();
-
+			if (this.stats) this.stats.end()
 		} catch (e) {
-			if (!this.config.ignoreErrors || this.config.outputErrors) console.error(e);
+			if (!this.config.ignoreErrors || this.config.outputErrors) console.error(e)
 			if (!this.config.ignoreErrors) {
-				this.stop(); // 避免与pauseWhenInvisible冲突
-				throw e;
+				this.stop() // 避免与pauseWhenInvisible冲突
+				throw e
 			}
 		}
 
@@ -314,105 +313,105 @@ export default class Timeline extends TrackGroup {
 		// 这里只能使用 try catch 或者 timeout
 		// 或者总是开启raf循环，但是在入口判断是否直接抛弃
 		if (time !== undefined) {
-			this.playing = false;
+			this.playing = false
 		} else if (this.alive) {
-			this.animationFrameID = raf(() => this.tick());
+			this.animationFrameID = raf(() => this.tick())
 		}
 
-		return this;
+		return this
 	}
 
 	// 开始播放
 	play() {
-		this.stop();
-		this.playing = true;
-		this.referenceTime = this._getTimeNow();
-		this.tick();
-		return this;
+		this.stop()
+		this.playing = true
+		this.referenceTime = this._getTimeNow()
+		this.tick()
+		return this
 	}
 
 	// 调到指定时间
 	seek(time) {
-		this.currentTime = time;
-		this.referenceTime = this._getTimeNow() - time;
-		return this;
+		this.currentTime = time
+		this.referenceTime = this._getTimeNow() - time
+		return this
 	}
 
 	// 停止播放
 	stop() {
-		this.playing = false;
-		cancelRaf(this.animationFrameID);
-		return this;
+		this.playing = false
+		cancelRaf(this.animationFrameID)
+		return this
 	}
 
 	// 暂停播放
 	pause() {
-		this.playing = false;
-		this._timeBeforePaused = this.currentTime;
-		cancelRaf(this.animationFrameID);
-		return this;
+		this.playing = false
+		this._timeBeforePaused = this.currentTime
+		cancelRaf(this.animationFrameID)
+		return this
 	}
 
 	// 从暂停中恢复， ** 不能从停止中恢复 **
 	resume() {
-		this.pause();
-		this.seek(this._timeBeforePaused);
-		this.playing = true;
-		this.tick();
-		return this;
+		this.pause()
+		this.seek(this._timeBeforePaused)
+		this.playing = true
+		this.tick()
+		return this
 	}
 
 	// 清理掉整个Timeline，目前没有发现需要单独清理的溢出点
 	destroy() {
-		this.stop();
-		this.tracks = [];
+		this.stop()
+		this.tracks = []
 	}
 
 	// 以下接口行为与DOM标准保持一致，但是全部与timeline中的时间和行为对齐
 
 	// 重写Dom标准中的 setTimeout
 	setTimeout(callback, time = 10) {
-		if (time < 0) time = 0;
-		const ID = this._timeoutID++;
+		if (time < 0) time = 0
+		const ID = this._timeoutID++
 		this.addTrack({
 			id: '__timeout__' + ID,
 			startTime: this.currentTime + time,
 			duration: 1000,
 			loop: false,
 			onStart: callback,
-		});
-		return ID;
+		})
+		return ID
 	}
 
 	// 重写Dom标准中的 setInterval
 	setInterval(callback, time = 10) {
-		if (time < 0) time = 0;
-		const ID = this._timeoutID++;
+		if (time < 0) time = 0
+		const ID = this._timeoutID++
 		this.addTrack({
 			id: '__timeout__' + ID,
 			startTime: this.currentTime + time,
 			duration: time,
 			loop: true,
 			onStart: callback,
-		});
-		return ID;
+		})
+		return ID
 	}
 
 	clearTimeout(ID) {
-		const track = this.getTracksByID('__timeout__' + ID)[0];
+		const track = this.getTracksByID('__timeout__' + ID)[0]
 		if (track) {
-			track.alive = false;
+			track.alive = false
 		}
 	}
 
 	clearInterval(ID) {
-		this.clearTimeout(ID);
+		this.clearTimeout(ID)
 	}
 
-	// 
+	//
 
 	getTime() {
-		return this.referenceTime + this.currentTime;
+		return this.referenceTime + this.currentTime
 	}
 
 	/**
@@ -421,36 +420,34 @@ export default class Timeline extends TrackGroup {
 	 * @param  {Worker|WorkerGlobalScope|MessagePort} port 通讯端口
 	 */
 	listen(port) {
-		if (this.ports.includes(port)) return;
+		if (this.ports.includes(port)) return
 
 		const listener = e => {
 			// console.log(e);
-			if (!e.data ||
-				e.data.__timeline_type !== 'PAIRING_REQ'
-			) return;
+			if (!e.data || e.data.__timeline_type !== 'PAIRING_REQ') return
 
-			this._addShadow(port, e.data.__timeline_shadow_id);
-			e.preventDefault();
-			e.stopPropagation();
-			e.stopImmediatePropagation(); // IE 9
-		};
+			this._addShadow(port, e.data.__timeline_shadow_id)
+			e.preventDefault()
+			e.stopPropagation()
+			e.stopImmediatePropagation() // IE 9
+		}
 
-		this.ports.push(port);
-		this.listeners.push(listener);
+		this.ports.push(port)
+		this.listeners.push(listener)
 
-		port.addEventListener('message', listener);
+		port.addEventListener('message', listener)
 	}
 
 	stopListen(port) {
-		const index = this.ports.indexOf(port);
-		const listener = this.listeners[index];
+		const index = this.ports.indexOf(port)
+		const listener = this.listeners[index]
 
 		if (index > -1) {
-			this.ports.splice(index, 1);
-			this.listeners.splice(index, 1);
+			this.ports.splice(index, 1)
+			this.listeners.splice(index, 1)
 		}
 
-		port.removeEventListener('message', listener);
+		port.removeEventListener('message', listener)
 	}
 
 	_addShadow(shadow, id) {
@@ -466,17 +463,17 @@ export default class Timeline extends TrackGroup {
 				// onStart: null,
 				onUpdate: null,
 				// onEnd: null,
-			};
-			shadow.duration = shadow.config.duration;
-			shadow.loop = shadow.config.loop;
-			shadow.onInit = null;
-			shadow.onStart = null;
-			shadow.onEnd = null;
+			}
+			shadow.duration = shadow.config.duration
+			shadow.loop = shadow.config.loop
+			shadow.onInit = null
+			shadow.onStart = null
+			shadow.onEnd = null
 
-			this.localShadows.push(shadow);
+			this.localShadows.push(shadow)
 		} else {
 			// 远程
-			const port = shadow;
+			const port = shadow
 			const remoteShadow = {
 				port,
 				// 等待队列
@@ -485,29 +482,27 @@ export default class Timeline extends TrackGroup {
 				waiting: false,
 				// 一对多，需要一个额外的ID
 				id,
-			};
+			}
 
 			// 回执
 			// port.onmessage = e => {
 			port.addEventListener('message', e => {
 				// console.log(e);
-				if (!e.data ||
-					e.data.__timeline_shadow_id !== remoteShadow.id
-				) return;
+				if (!e.data || e.data.__timeline_shadow_id !== remoteShadow.id) return
 
-				e.preventDefault();
-				e.stopPropagation();
-				e.stopImmediatePropagation(); // IE 9
+				e.preventDefault()
+				e.stopPropagation()
+				e.stopImmediatePropagation() // IE 9
 
 				if (e.data.__timeline_type === 'done') {
-					remoteShadow.waiting = false;
+					remoteShadow.waiting = false
 					// remoteShadow.waitQueue.length && shadow.waitQueue.shift()();
 					if (remoteShadow.waitQueue.length) {
-						remoteShadow.waiting = true;
-						remoteShadow.port.postMessage(remoteShadow.waitQueue.shift());
+						remoteShadow.waiting = true
+						remoteShadow.port.postMessage(remoteShadow.waitQueue.shift())
 					}
 				}
-			});
+			})
 
 			// 同步初始状态
 			port.postMessage({
@@ -525,11 +520,10 @@ export default class Timeline extends TrackGroup {
 					onSkipFrame: null,
 				},
 				// __timeline_timenow: this.referenceTime,
-			});
+			})
 
-			this.remoteShadows.push(remoteShadow);
+			this.remoteShadows.push(remoteShadow)
 		}
-
 	}
 
 	/**
@@ -540,51 +534,51 @@ export default class Timeline extends TrackGroup {
 	 * @param {Timeline|Worker|WorkerGlobalScope|MessagePort} origin
 	 */
 	setOrigin(origin) {
-		if (this.origin) throw new Error('该timeline已经设置过Origin');
-		if (this === origin) throw new Error('不能将自身设为Origin');
+		if (this.origin) throw new Error('该timeline已经设置过Origin')
+		if (this === origin) throw new Error('不能将自身设为Origin')
 
-		this.origin = origin;
+		this.origin = origin
 
-		this.shadow_id = getTimeNow() + Math.random();
+		this.shadow_id = getTimeNow() + Math.random()
 
 		// 本地Origin和远程Origin
 		if (origin.isTimeline) {
 			// 本地
-			origin._addShadow(this, this.shadow_id);
+			origin._addShadow(this, this.shadow_id)
 		} else {
 			// 远程
-			const port = origin;
+			const port = origin
 			// 配对请求
 			port.postMessage({
 				__timeline_type: 'PAIRING_REQ',
 				// __timeline_id: this.config.id,
 				// 分配端口ID
 				__timeline_shadow_id: this.shadow_id,
-			});
+			})
 
 			this.origin.addEventListener('message', e => {
-				const data = e.data;
+				const data = e.data
 
 				// 已分配shadow_id，只接受自己的消息
-				if (!data || data.__timeline_shadow_id !== this.shadow_id) return;
+				if (!data || data.__timeline_shadow_id !== this.shadow_id) return
 
 				if (data.__timeline_type === 'init') {
 					// console.log('接受分配', data);
 					// 占用该port
-					e.preventDefault();
-					e.stopPropagation();
-					e.stopImmediatePropagation(); // IE 9
+					e.preventDefault()
+					e.stopPropagation()
+					e.stopImmediatePropagation() // IE 9
 					// 初始化自身的设置
-					this.config = data.__timeline_msg;
-					this.duration = this.config.duration;
-					this.loop = this.config.loop;
+					this.config = data.__timeline_msg
+					this.duration = this.config.duration
+					this.loop = this.config.loop
 				}
 
 				if (data.__timeline_type === 'tick') {
-					this.currentTime = data.__timeline_msg.currentTime;
-					this.duration = data.__timeline_msg.duration;
-					this.referenceTime = data.__timeline_msg.referenceTime;
-					this.tick(this.currentTime);
+					this.currentTime = data.__timeline_msg.currentTime
+					this.duration = data.__timeline_msg.duration
+					this.referenceTime = data.__timeline_msg.referenceTime
+					this.tick(this.currentTime)
 					// @NOTE currentTime会是对的，referenceTime会乱掉
 
 					// 完成回执
@@ -592,35 +586,34 @@ export default class Timeline extends TrackGroup {
 						__timeline_type: 'done',
 						// __timeline_id: this.id,
 						__timeline_shadow_id: this.shadow_id,
-					});
+					})
 				}
-
-			});
+			})
 		}
 
 		// 剥夺控制权
-		this.seek = (time) => {
-			this.currentTime = time;
-			return this;
-		};
+		this.seek = time => {
+			this.currentTime = time
+			return this
+		}
 		// this.tick = () => { console.error('ShadowTimeline shall not be edited derictly!'); }
 		this.play = () => {
-			console.error('ShadowTimeline shall not be edited derictly!');
-		};
+			console.error('ShadowTimeline shall not be edited derictly!')
+		}
 		this.stop = () => {
-			console.error('ShadowTimeline shall not be edited derictly!');
-		};
+			console.error('ShadowTimeline shall not be edited derictly!')
+		}
 		this.pause = () => {
-			console.error('ShadowTimeline shall not be edited derictly!');
-		};
+			console.error('ShadowTimeline shall not be edited derictly!')
+		}
 		this.resume = () => {
-			console.error('ShadowTimeline shall not be edited derictly!');
-		};
+			console.error('ShadowTimeline shall not be edited derictly!')
+		}
 	}
 
 	// 更新maxFPS
 	updateMaxFPS(maxFPS) {
-		this.config.maxFPS = maxFPS;
-		this.minFrame = 900 / this.config.maxFPS;
+		this.config.maxFPS = maxFPS
+		this.minFrame = 900 / this.config.maxFPS
 	}
 }

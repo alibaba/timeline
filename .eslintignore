@@ -1,5 +1,6 @@
 src/_old
 src/util
+src/plugins
 **/bin/**
 
 dist
