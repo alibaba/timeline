@@ -1,12 +1,3 @@
-<!DOCTYPE html>
-<html lang="en" dir="ltr">
-<head>
-<meta charset="utf-8">
-<title>基准测试</title>
-</head>
-<body>
-<script src="/static/import.demo.js" charset="utf-8"></script>
-<script type="text/javascript">
 // const timeline = new Timeline({
 //     pauseWhenInvisible: true,
 //     duration: 10000,
@@ -39,9 +30,9 @@ m.innerHTML = '0'
 document.body.appendChild(m)
 
 const timeline = new Timeline({
-    pauseWhenInvisible: true,
-    duration: Infinity,
-    maxFPS: 30,
+	pauseWhenInvisible: true,
+	duration: Infinity,
+	maxFPS: 30,
 })
 
 timeline.addTrack({
@@ -49,7 +40,7 @@ timeline.addTrack({
 	loop: true,
 	onUpdate: (t, p) => {
 		m.style.marginTop = '' + 1000 * p + 'px'
-	}
+	},
 })
 
 timeline.play()
@@ -65,8 +56,3 @@ timeline.play()
 // }
 
 // s()
-
-
-</script>
-</body>
-</html>

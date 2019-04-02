@@ -1,16 +1,6 @@
-<!DOCTYPE html>
-<html lang="en" dir="ltr">
-<head>
-<meta charset="utf-8">
-<title>卡顿测试</title>
-</head>
-<body>
-<script src="/static/import.demo.js" charset="utf-8"></script>
-<script type="text/javascript">
-
 const timeline = new Timeline({
-    pauseWhenInvisible: false,
-    duration: Infinity,
+	pauseWhenInvisible: false,
+	duration: Infinity,
 })
 
 // 添加Track
@@ -61,7 +51,3 @@ setTimeout(() => console.log(0.3), 0.3)
 setTimeout(() => console.log(0.4), 0.4)
 setTimeout(() => console.log(0.1), 0.1)
 setTimeout(() => console.log(0.5), 0.5)
-
-</script>
-</body>
-</html>

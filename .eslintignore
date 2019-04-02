@@ -1,0 +1,6 @@
+src/_old
+src/util
+**/bin/**
+
+dist
+node_modules
