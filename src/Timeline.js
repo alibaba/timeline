@@ -523,7 +523,8 @@ export default class Timeline extends TrackGroup {
 	 * @param {Timeline|Worker|WorkerGlobalScope|MessagePort} origin
 	 */
 	setOrigin(origin) {
-		if (this.origin) console.error('该timeline已经设置过Origin');
+		if (this.origin) throw new Error('该timeline已经设置过Origin');
+		if (this === origin) throw new Error('不能将自身设为Origin');
 
 		this.origin = origin;
 
