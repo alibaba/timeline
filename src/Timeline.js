@@ -117,6 +117,7 @@ export default class Timeline extends TrackGroup {
 		this._supTimeNow = 0;
 
 		this.ports = [];
+		this.listeners = [];
 
 		this.localShadows = [];
 		this.remoteShadows = [];
@@ -421,9 +422,8 @@ export default class Timeline extends TrackGroup {
 	 */
 	listen(port) {
 		if (this.ports.includes(port)) return;
-		this.ports.push(port);
 
-		port.addEventListener('message', e => {
+		const listener = e => {
 			// console.log(e);
 			if (!e.data ||
 				e.data.__timeline_type !== 'PAIRING_REQ'
@@ -433,7 +433,24 @@ export default class Timeline extends TrackGroup {
 			e.preventDefault();
 			e.stopPropagation();
 			e.stopImmediatePropagation(); // IE 9
-		});
+		};
+
+		this.ports.push(port);
+		this.listeners.push(listener);
+
+		port.addEventListener('message', listener);
+	}
+
+	stopListen(port) {
+		const index = this.ports.indexOf(port);
+		const listener = this.listeners[index];
+
+		if (index > -1) {
+			this.ports.splice(index, 1);
+			this.listeners.splice(index, 1);
+		}
+
+		port.removeEventListener('message', listener);
 	}
 
 	_addShadow(shadow, id) {
