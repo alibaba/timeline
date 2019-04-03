@@ -12,4 +12,5 @@ webpack.config.js
 .editorconfig
 .prettierignore
 .prettierrc
-webpack.config.prod
+.vscode/
+webpack.config.prod.js

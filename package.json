@@ -1,10 +1,18 @@
 {
-	"name": "@ali/Timeline",
-	"version": "beta-1.2.16",
-	"author": "西萌",
+	"name": "animation-timeline",
+	"version": "1.2.16",
+	"author": "Simon <gaomeng1900@gmail.com>",
 	"description": "时间线系统",
 	"main": "dist/Timeline.js",
-	"license": "ISC",
+	"keywords": [
+		"timeline",
+		"track",
+		"animation",
+		"event",
+		"js",
+		"node"
+	],
+	"license": "MIT",
 	"dependencies": {},
 	"devDependencies": {
 		"@babel/core": "^7.4.0",

@@ -5,7 +5,7 @@
 /**************************************************
  * Timeline                                       *
  * Manage All Your Events And Animations Together *
- * @author Simon(Meng) / gaomeng1900 @gmail.com   *
+ * @author Simon(西萌) <gaomeng1900@gmail.com>     *
  **************************************************/
 
 import TrackGroup from './TrackGroup'
@@ -16,7 +16,7 @@ import Stats from './plugins/stats'
 const CONFIG_DEFAULT = {
 	duration: Infinity,
 	loop: false,
-	autoRecevery: false,
+	autoRecevery: true,
 	// 页面非激活状态（requestAnimationFrame不工作）时，自动停止播放
 	// 避免长时间页面切走后切回，造成的时间突进
 	pauseWhenInvisible: false,
@@ -50,14 +50,12 @@ const CONFIG_DEFAULT = {
 	onUpdate: () => {},
 
 	// 帧率限制造成的跳帧，用于再外部判断当前性能是否剩余
-	onSkipFrame: () => {},
+	// TODO 由于浏览器帧率分配机制，该回掉可能起不到作用
+	// onSkipFrame: () => {},
 }
 
 // 最大等待队列，超出后将舍弃最久的pull request
 const MAX_WAIT_QUEUE = 2
-
-// FPS recorder
-// const MAX_FPS_RECORD = 30
 
 /**
  * Timeline 🌺 🌺 🌺
@@ -76,22 +74,17 @@ export default class Timeline extends TrackGroup {
 			...config,
 		}
 
+		// a timeline instance, unlike a track, must start from 0.
 		config.startTime = 0
 
 		super(config)
-
-		this.config = config
 		this.isTimeline = true
 
 		this.duration = this.config.duration
-		// this.loop = this.config.loop;
 
 		// 频率限制
 		this.minFrame = 900 / this.config.maxFPS
 
-		// this.tracks = [];
-
-		// this.currentTime = 0; // timeLocal
 		this._lastCurrentTime = 0
 		this.referenceTime = this._getTimeNow() // 参考时间
 
@@ -99,25 +92,27 @@ export default class Timeline extends TrackGroup {
 
 		this.playing = false
 
-		// this.cbkEnd = [];
+		// @proposal 把需要执行的tick排序执行（orderGuarantee）
+		// this._ticks = []
 
-		// this._ticks = []; // 把需要执行的tick排序执行（orderGuarantee）
-
+		// pauseWhenInvisible
 		this._hidden = null // used to detect if `document.hidden` works correctly (may not in webviews)
 		this._timeBeforeHidden = 0
 		this._timeBeforePaused = 0
 
 		this._timeoutID = 0 // 用于给setTimeout和setInterval分配ID
 
+		// fixStep
 		this._supTimeNow = 0
 
+		// remote
 		this.ports = []
 		this.listeners = []
 
+		// shadow - origin
 		this.localShadows = []
 		this.remoteShadows = []
 
-		// this.origin
 		this.config.origin && this.setOrigin(this.config.origin)
 
 		// 统计FPS
@@ -129,7 +124,9 @@ export default class Timeline extends TrackGroup {
 			typeof document === 'undefined' &&
 			(this.config.openStats || this.config.pauseWhenInvisible)
 		) {
-			console.error('can not use `openStats` or `pauseWhenInvisible` due to the running env')
+			console.error(
+				'timeline::"openStats" and "pauseWhenInvisible" only works in rendering thread'
+			)
 			this.config.openStats = false
 			this.config.pauseWhenInvisible = false
 		}
@@ -142,21 +139,21 @@ export default class Timeline extends TrackGroup {
 		}
 
 		// 页面不可见时暂停计时
-		// @NOTE 当前版本electron的webview中这个接口行为错乱
+		// @NOTE electron的webview中visibilitychange接口行为错乱
 		if (this.config.pauseWhenInvisible) {
 			document.addEventListener('visibilitychange', () => {
 				// 如果已经被控制，则不做判断
 				if (this.origin) return
 				if (document.hidden) {
 					if (this._hidden === true) {
-						console.error('document.hidden may not work')
+						console.error('timeline::document.hidden seems not working')
 					}
 					this._hidden = true
 					this._timeBeforeHidden = this.currentTime
 					cancelRaf(this.animationFrameID)
 				} else {
 					if (this._hidden === false) {
-						console.error('document.hidden may not work')
+						console.error('timeline::document.hidden seems not working')
 					}
 					this._hidden = false
 					this.seek(this._timeBeforeHidden)
@@ -194,16 +191,14 @@ export default class Timeline extends TrackGroup {
 	 */
 	tick(time) {
 		// 不使用系统时间，假设每两次requestAnimationFrame之间的间距是相等的
-		if (this.config.fixStep) {
-			this._supTimeNow += this.config.fixStep
-		}
+		if (this.config.fixStep) this._supTimeNow += this.config.fixStep
 
 		if (time === undefined) {
 			const currentTime = this._getTimeNow() - this.referenceTime
 			// FPS限制
 			if (currentTime - this.currentTime < this.minFrame) {
 				this.animationFrameID = raf(() => this.tick())
-				this.config.onSkipFrame()
+				// this.config.onSkipFrame()
 				return this
 			}
 			this._lastCurrentTime = this.currentTime
@@ -517,9 +512,8 @@ export default class Timeline extends TrackGroup {
 					onStart: null,
 					onUpdate: null,
 					onEnd: null,
-					onSkipFrame: null,
+					onSkipFrame: null, // legacy
 				},
-				// __timeline_timenow: this.referenceTime,
 			})
 
 			this.remoteShadows.push(remoteShadow)
@@ -536,6 +530,8 @@ export default class Timeline extends TrackGroup {
 	setOrigin(origin) {
 		if (this.origin) throw new Error('该timeline已经设置过Origin')
 		if (this === origin) throw new Error('不能将自身设为Origin')
+
+		this.stop()
 
 		this.origin = origin
 
