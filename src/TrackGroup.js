@@ -25,23 +25,19 @@ export default class TrackGroup extends Track {
 		this.isTrackGroup = true
 		// 子级Track
 		this.tracks = []
-		this.children = this.tracks
-
-		// this.currentTime = 0; // timeLocal
-		// this.duration = this.config.duration;
 	}
 
 	traverse(f) {
 		// 自己
 		f(this)
 		// children
-		if (!this.children || this.children.length === 0) return
-		this.children.forEach(c => c.traverse(f))
+		if (!this.tracks || this.tracks.length === 0) return
+		this.tracks.forEach(c => c.traverse(f))
 	}
 
 	// 垃圾回收
 	recovery() {
-		// @des 性能过差
+		// @NOTE 性能过差
 		// 倒序删除，以免数组索引混乱
 		// for (let i = this.tracks.length - 1; i >= 0; i--) {
 		// 	if (!this.tracks[i].alive) {
@@ -49,7 +45,7 @@ export default class TrackGroup extends Track {
 		// 	}
 		// }
 
-		// @NOTE GC
+		// @NOTE 外部不应该保存tracks引用
 		this.tracks = this.tracks.filter(track => track.alive)
 	}
 
