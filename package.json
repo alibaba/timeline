@@ -1,6 +1,6 @@
 {
-	"name": "animation-timeline",
-	"version": "1.2.16",
+	"name": "@ali/Timeline",
+	"version": "1.2.18",
 	"author": "Simon <gaomeng1900@gmail.com>",
 	"description": "时间线系统",
 	"main": "dist/Timeline.js",

@@ -141,7 +141,7 @@ export default class Timeline extends TrackGroup {
 		// 页面不可见时暂停计时
 		// @NOTE electron的webview中visibilitychange接口行为错乱
 		if (this.config.pauseWhenInvisible) {
-			document.addEventListener('visibilitychange', () => {
+			this._onvisibilitychange = () => {
 				// 如果已经被控制，则不做判断
 				if (this.origin) return
 				if (document.hidden) {
@@ -161,7 +161,8 @@ export default class Timeline extends TrackGroup {
 						this.tick()
 					}
 				}
-			})
+			}
+			document.addEventListener('visibilitychange', this._onvisibilitychange)
 		}
 
 		// 更新shadow时间
@@ -480,8 +481,7 @@ export default class Timeline extends TrackGroup {
 			}
 
 			// 回执
-			// port.onmessage = e => {
-			port.addEventListener('message', e => {
+			const msgHandler = e => {
 				// console.log(e);
 				if (!e.data || e.data.__timeline_shadow_id !== remoteShadow.id) return
 
@@ -497,7 +497,10 @@ export default class Timeline extends TrackGroup {
 						remoteShadow.port.postMessage(remoteShadow.waitQueue.shift())
 					}
 				}
-			})
+			}
+			port.addEventListener('message', msgHandler)
+			// 保存引用用于 remove
+			remoteShadow.msgHandler = msgHandler
 
 			// 同步初始状态
 			port.postMessage({
@@ -552,7 +555,7 @@ export default class Timeline extends TrackGroup {
 				__timeline_shadow_id: this.shadow_id,
 			})
 
-			this.origin.addEventListener('message', e => {
+			this._onOriginMessage = e => {
 				const data = e.data
 
 				// 已分配shadow_id，只接受自己的消息
@@ -584,7 +587,8 @@ export default class Timeline extends TrackGroup {
 						__timeline_shadow_id: this.shadow_id,
 					})
 				}
-			})
+			}
+			this.origin.addEventListener('message', this._onOriginMessage)
 		}
 
 		// 剥夺控制权
@@ -611,5 +615,36 @@ export default class Timeline extends TrackGroup {
 	updateMaxFPS(maxFPS) {
 		this.config.maxFPS = maxFPS
 		this.minFrame = 900 / this.config.maxFPS
+	}
+
+	// 清理
+	dispose() {
+		this.stop()
+		this.play = null
+		this.tick = null
+
+		if (this.stats) {
+			document.body.removeChild(this.stats.dom)
+		}
+
+		if (this._onvisibilitychange) {
+			document.removeEventListener('visibilitychange', this._onvisibilitychange)
+		}
+
+		if (this._onOriginMessage) {
+			this.origin.removeEventListener('message', this._onOriginMessage)
+		}
+
+		this.ports.forEach(port => this.stopListen(port))
+
+		this.remoteShadows.forEach(remoteShadow =>
+			remoteShadow.port.addEventListener('message', remoteShadow.msgHandler)
+		)
+
+		this.ports = null
+		this.listeners = null
+		this.localShadows = null
+		this.remoteShadows = null
+		this.config = null
 	}
 }
