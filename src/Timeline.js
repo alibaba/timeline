@@ -149,7 +149,7 @@ export default class Timeline extends TrackGroup {
 						console.error('timeline::document.hidden seems not working')
 					}
 					this._hidden = true
-					this._timeBeforeHidden = this.currentTime
+					this._timeBeforeHidden = this.currentTime // TODO 这一步记录如果被忽略掉，会造成严重的时间错位
 					cancelRaf(this.animationFrameID)
 				} else {
 					if (this._hidden === false) {
@@ -162,6 +162,8 @@ export default class Timeline extends TrackGroup {
 					}
 				}
 			}
+
+			// TODO 这个事件在断点过程中会被直接丢弃掉不触发，如果断点过程中改变页面可见行，会出现错误
 			document.addEventListener('visibilitychange', this._onvisibilitychange)
 		}
 

@@ -280,6 +280,13 @@ timeline.addTrack({
 })
 ```
 
+# 已知兼容性问题
+
+- pauseWhenInvisible 功能 需要 visibilitychange 和 document.hidden 接口，已知以下情况下会因此出错
+  - 一些老版浏览器中未实现这些接口
+  - 在一些 webview 实现中(包括 electron )该接口的行为不符合 DOM 标准
+  - 在 Chrome devtool 中进入断点之后，所有的 visibilitychange 事件都会丢失
+
 # Proposals
 
 - [ ] 加入循环次数的处理
