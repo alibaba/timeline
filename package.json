@@ -1,8 +1,8 @@
 {
-	"name": "@ali/Timeline",
+	"name": "ani-timeline",
 	"version": "1.2.18",
 	"author": "Simon <gaomeng1900@gmail.com>",
-	"description": "时间线系统",
+	"description": "Manage all your events and animations together. Keep everything happen at the right time.",
 	"main": "dist/Timeline.js",
 	"keywords": [
 		"timeline",
@@ -52,11 +52,5 @@
 			"eslint --fix",
 			"git add"
 		]
-	},
-	"husky": {
-		"hooks": {
-			"post-merge": "tnpm install",
-			"pre-commit": "lint-staged"
-		}
 	}
 }
