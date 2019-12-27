@@ -23,7 +23,7 @@ Timeline 的设计原则是：无论何时从任意时间跳到任意时间，�
 # 基本使用
 
 ```javascript
-import Timeline from '@ali/Timeline'
+import Timeline from 'ani-timeline'
 
 // 创建一个timeline实例
 const timeline = new Timeline({
