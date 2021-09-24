@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2017 Alibaba Group Holding Limited
  * Copyright (c) 2010-2012 Tween.js authors
- * @author Simon(Meng) / gaomeng1900 @gmail.com
+ * @author Simon <gaomeng1900@gmail.com>
  */
 
 // polyfills
@@ -32,7 +32,7 @@ if (typeof process !== 'undefined' && process.hrtime !== undefined) {
 	// 初始化
 	_timePrev = process.hrtime()
 
-	getTimeNow = function() {
+	getTimeNow = function () {
 		// 注意hrtime拿到的时间是无意义的，需要进行时间对比
 		const _dtime = process.hrtime(_timePrev)
 		_timePrev = process.hrtime()
@@ -51,7 +51,7 @@ if (typeof process !== 'undefined' && process.hrtime !== undefined) {
 
 	_timePrev = performance.now()
 
-	getTimeNow = function() {
+	getTimeNow = function () {
 		const timeCurr = performance.now()
 		const dtime = timeCurr - _timePrev
 		_timePrev = timeCurr
@@ -64,7 +64,7 @@ if (typeof process !== 'undefined' && process.hrtime !== undefined) {
 
 	_timePrev = Date.now()
 
-	getTimeNow = function() {
+	getTimeNow = function () {
 		const timeCurr = Date.now()
 		const dtime = timeCurr - _timePrev
 		_timePrev = timeCurr
@@ -76,7 +76,7 @@ if (typeof process !== 'undefined' && process.hrtime !== undefined) {
 	console.warn('##timeline:: new Date().getTime() 低精度低性能时间，建议升级浏览器')
 	_timePrev = new Date().getTime()
 
-	getTimeNow = function() {
+	getTimeNow = function () {
 		const timeCurr = new Date().getTime()
 		const dtime = timeCurr - _timePrev
 		_timePrev = timeCurr
@@ -94,7 +94,7 @@ if (typeof requestAnimationFrame !== 'undefined') {
 	raf = requestAnimationFrame
 	cancelRaf = cancelAnimationFrame
 } else {
-	raf = cbk => setTimeout(cbk, 15)
+	raf = (cbk) => setTimeout(cbk, 15)
 	cancelRaf = clearTimeout
 }
 

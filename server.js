@@ -7,7 +7,7 @@
 const express = require('express')
 const webpack = require('webpack')
 const path = require('path')
-const comp = require('compression')
+// const comp = require('compression')
 const jade = require('pug')
 const fs = require('fs')
 
@@ -32,7 +32,7 @@ const port = 3059
 
 console.log(`Listening 👉  http://${ip}:${port} 👈 \n`)
 
-app.listen(port, '0.0.0.0', err => {
+app.listen(port, '0.0.0.0', (err) => {
 	if (err) {
 		console.log(err)
 	}
@@ -61,12 +61,12 @@ const devOption = {
 }
 
 // gzip
-app.use(comp())
+// app.use(comp())
 
 // use webpack middleware with compiter & dev_option
 app.use(require('webpack-dev-middleware')(compiler, devOption))
 
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
 	req.headers['if-none-match'] = 'no-match-for-this'
 	next()
 })

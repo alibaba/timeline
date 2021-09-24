@@ -10,7 +10,7 @@
 		"node": true,
 		"worker": true
 	},
-	"parser": "babel-eslint",
+	"parser": "@babel/eslint-parser",
 	"rules": {
 		"space-before-function-paren": 0,
 		"no-tabs": 0,
