@@ -1,9 +1,10 @@
 {
 	"name": "ani-timeline",
-	"version": "1.2.18",
+	"version": "1.2.19-b",
 	"author": "Simon <gaomeng1900@gmail.com>",
-	"description": "Manage all your events and animations together. Keep everything happen at the right time.",
+	"description": "Manage all your events and animations together.(Stable version used by double-11 fest)",
 	"main": "dist/Timeline.js",
+	"types": "",
 	"keywords": [
 		"timeline",
 		"track",

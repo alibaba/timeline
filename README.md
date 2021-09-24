@@ -3,8 +3,6 @@
 时间线管理器
 
 > Manage all your events and animations together.
->
-> Keep everything happen at the right time.
 
 在一个 Timeline 中管理所有的动画和 shedule 任务，WebMedia-like 接口，致力于稳定、流畅地实现复杂动画并易于调试。
 
@@ -14,9 +12,11 @@ Timeline 的设计原则是：无论何时从任意时间跳到任意时间，�
 
 # 安装
 
-`tnpm i --save @ali/Timeline`
+`npm i --save ani-timeline`
 
-支持环境: `broswer`、`WebWorker`、`node.js`、`electron`、`webview`
+支持环境: `broswer`、`WebWorker`、`node.js`、`electron`、`webview`。
+
+支持 typescript 。
 
 ---
 
@@ -39,10 +39,10 @@ timeline.addTrack({
 	startTime: timeline.currentTime + 500, // 开始时间
 	duration: 1000, // 时长
 	loop: false, // 是否循环
-	onStart: time => {
+	onStart: (time) => {
 		console.log('start')
 	}, // 起始回调
-	onEnd: time => {
+	onEnd: (time) => {
 		console.log('end')
 	}, // 结束回调
 	onUpdate: (time, percent) => {
@@ -96,6 +96,8 @@ timeline.addTrack({
 ---
 
 # 接口
+
+接口详见 [typescript declaration](./types/index.d.ts)
 
 ## **Timeline**
 
