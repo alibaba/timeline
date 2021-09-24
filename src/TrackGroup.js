@@ -27,13 +27,13 @@ export default class TrackGroup extends Track {
 		this.tracks = []
 	}
 
-	traverse(f) {
-		// 自己
-		f(this)
-		// children
-		if (!this.tracks || this.tracks.length === 0) return
-		this.tracks.forEach(c => c.traverse(f))
-	}
+	// traverse(f) {
+	// 	// 自己
+	// 	f(this)
+	// 	// children
+	// 	if (!this.tracks || this.tracks.length === 0) return
+	// 	this.tracks.forEach(c => c.traverse(f))
+	// }
 
 	// 垃圾回收
 	recovery() {
@@ -46,7 +46,7 @@ export default class TrackGroup extends Track {
 		// }
 
 		// @NOTE 外部不应该保存tracks引用
-		this.tracks = this.tracks.filter(track => track.alive)
+		this.tracks = this.tracks.filter((track) => track.alive)
 	}
 
 	/**
