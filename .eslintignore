@@ -1,7 +1,0 @@
-src/_old
-src/util
-src/plugins
-**/bin/**
-
-dist
-node_modules
