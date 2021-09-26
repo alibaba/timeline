@@ -84,6 +84,26 @@ declare class Track {
 	endTime: number
 	duration: number
 	alive: number
+
+	/**
+	 * track 开始时的回调，每次 loop 会被执行一次
+	 */
+	onStart?: (currentTime: number) => void
+
+	/**
+	 * track 结束时的回调，每次 loop 会被执行一次
+	 */
+	onEnd?: (currentTime: number) => void
+
+	/**
+	 * track 更新时的回调，每帧执行一次
+	 */
+	onUpdate?: (currentTime: number, percentage: number) => void
+
+	/**
+	 * track 初始化时的回调，在首次 onstart 前执行一次
+	 */
+	onInit?: (currentTime: number) => void
 }
 
 declare class TrackGroup extends Track {
