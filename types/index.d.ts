@@ -228,6 +228,11 @@ declare class Timeline extends TrackGroup {
 	isTimeline: true
 
 	/**
+	 * 当前时间
+	 */
+	currentTime: number
+
+	/**
 	 * 是否正在播放
 	 */
 	playing: boolean
