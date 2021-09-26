@@ -83,7 +83,7 @@ declare class Track {
 	startTime: number
 	endTime: number
 	duration: number
-	alive: number
+	alive: boolean
 
 	/**
 	 * track 开始时的回调，每次 loop 会被执行一次

@@ -1,6 +1,6 @@
 {
 	"name": "ani-timeline",
-	"version": "1.2.19-f",
+	"version": "1.2.19-g",
 	"author": "Simon <gaomeng1900@gmail.com>",
 	"description": "Manage all your events and animations together.(Stable version used by double-11 fest)",
 	"main": "dist/Timeline.js",
