@@ -18,7 +18,7 @@ interface TrackParamsDuration {
 
 type TrackParamsEnd = TrackParamsEndTime | TrackParamsDuration
 
-interface TrackParamsCommon {
+export interface TrackParamsCommon {
 	/**
 	 * name of the track, only for debuging
 	 * 为 track 命名，方便调试，不需要唯一
@@ -72,7 +72,7 @@ type TrackParams = TrackParamsCommon & TrackParamsEnd
 // 	duration: 20,
 // }
 
-declare class Track {
+export class Track {
 	constructor(param: TrackParams)
 
 	/**
@@ -84,6 +84,15 @@ declare class Track {
 	endTime: number
 	duration: number
 	alive: boolean
+
+	// 运行中
+	running: boolean
+	// 初始化完成
+	inited: boolean
+	// 本轮播放过
+	started: boolean
+	// 循环次数
+	loopTime: number
 
 	/**
 	 * track 开始时的回调，每次 loop 会被执行一次
@@ -106,7 +115,7 @@ declare class Track {
 	onInit?: (currentTime: number) => void
 }
 
-declare class TrackGroup extends Track {
+export class TrackGroup extends Track {
 	tracks: Track[]
 
 	/**
@@ -141,7 +150,7 @@ declare class TrackGroup extends Track {
 	clear(): void
 }
 
-interface TimleineParams {
+export interface TimleineParams {
 	/**
 	 * 整个时间线的时长，超出会停止或者循环
 	 * @default Infinity
@@ -244,7 +253,7 @@ interface TimleineParams {
 	onError?: (source: Track, method: string, error: any) => void
 }
 
-declare class Timeline extends TrackGroup {
+export class Timeline extends TrackGroup {
 	isTimeline: true
 
 	/**
@@ -257,7 +266,18 @@ declare class Timeline extends TrackGroup {
 	 */
 	playing: boolean
 
-	constructor(params: TimleineParams)
+	/**
+	 * 当前帧率
+	 */
+	fps: number
+	/**
+	 * 当前帧长
+	 */
+	frametime: number
+
+	config: TimleineParams
+
+	constructor(params?: TimleineParams)
 
 	/**
 	 * 实时更新 fps 上限
@@ -308,7 +328,7 @@ declare class Timeline extends TrackGroup {
 	 * 使用这个接口可以避免 global.setTimeout 与基于 requestAnimationFrame 的 timeline track 时机错位
 	 * @return {Integer} timeoutID
 	 */
-	setTimeout(): number
+	setTimeout(callback: Function, timeout?: number): number
 
 	/**
 	 * 重写Dom标准中的 setInterval
@@ -316,10 +336,10 @@ declare class Timeline extends TrackGroup {
 	 * 使用这个接口可以避免 global.setInterval 与基于 requestAnimationFrame 的 timeline track 时机错位
 	 * @return {Integer} intervalID
 	 */
-	setInterval(): number
+	setInterval(callback: Function, interval?: number): number
 
 	clearTimeout(timeoutID: number): void
-	clearInterval(): void
+	clearInterval(intervalID: number): void
 
 	/**
 	 * @deprecated
@@ -343,4 +363,4 @@ declare class Timeline extends TrackGroup {
 }
 
 export default Timeline
-export { Timeline }
+// export { Timeline }

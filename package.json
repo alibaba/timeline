@@ -1,6 +1,6 @@
 {
 	"name": "ani-timeline",
-	"version": "1.2.19-g",
+	"version": "1.2.19-m",
 	"author": "Simon <gaomeng1900@gmail.com>",
 	"description": "Manage all your events and animations together.(Stable version used by double-11 fest)",
 	"main": "dist/Timeline.js",
@@ -42,7 +42,7 @@
 	},
 	"scripts": {
 		"start": "node --max-old-space-size=8192 server.js",
-		"dist": "webpack --config webpack.config.prod.js",
+		"dist": "echo \" do not build this branch ! (webpack --config webpack.config.prod.js) \"",
 		"watch": "webpack --config webpack.config.prod.js --watch",
 		"autofix": "eslint --fix ./",
 		"lint": "eslint ./"
