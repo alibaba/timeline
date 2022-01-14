@@ -149,7 +149,7 @@ export default class Timeline extends TrackGroup {
 						console.error('timeline::document.hidden seems not working')
 					}
 					this._hidden = true
-					this._timeBeforeHidden = this.currentTime // TODO 这一步记录如果被忽略掉，会造成严重的时间错位
+					this._timeBeforeHidden = this.currentTime
 					cancelRaf(this.animationFrameID)
 				} else {
 					if (this._hidden === false) {
@@ -162,8 +162,6 @@ export default class Timeline extends TrackGroup {
 					}
 				}
 			}
-
-			// TODO 这个事件在断点过程中会被直接丢弃掉不触发，如果断点过程中改变页面可见行，会出现错误
 			document.addEventListener('visibilitychange', this._onvisibilitychange)
 		}
 
@@ -249,7 +247,7 @@ export default class Timeline extends TrackGroup {
 			super.tick(this.currentTime)
 
 			// 同步Timeline
-			this.remoteShadows.forEach(shadow => {
+			this.remoteShadows.forEach((shadow) => {
 				const msg = {
 					__timeline_type: 'tick',
 					__timeline_id: this.id,
@@ -282,7 +280,7 @@ export default class Timeline extends TrackGroup {
 				}
 			})
 
-			this.localShadows.forEach(shadow => {
+			this.localShadows.forEach((shadow) => {
 				shadow.currentTime = this.currentTime
 				shadow.duration = this.duration
 				shadow.referenceTime = this.referenceTime
@@ -420,7 +418,7 @@ export default class Timeline extends TrackGroup {
 	listen(port) {
 		if (this.ports.includes(port)) return
 
-		const listener = e => {
+		const listener = (e) => {
 			// console.log(e);
 			if (!e.data || e.data.__timeline_type !== 'PAIRING_REQ') return
 
@@ -483,7 +481,7 @@ export default class Timeline extends TrackGroup {
 			}
 
 			// 回执
-			const msgHandler = e => {
+			const msgHandler = (e) => {
 				// console.log(e);
 				if (!e.data || e.data.__timeline_shadow_id !== remoteShadow.id) return
 
@@ -557,7 +555,7 @@ export default class Timeline extends TrackGroup {
 				__timeline_shadow_id: this.shadow_id,
 			})
 
-			this._onOriginMessage = e => {
+			this._onOriginMessage = (e) => {
 				const data = e.data
 
 				// 已分配shadow_id，只接受自己的消息
@@ -594,7 +592,7 @@ export default class Timeline extends TrackGroup {
 		}
 
 		// 剥夺控制权
-		this.seek = time => {
+		this.seek = (time) => {
 			this.currentTime = time
 			return this
 		}
@@ -637,9 +635,9 @@ export default class Timeline extends TrackGroup {
 			this.origin.removeEventListener('message', this._onOriginMessage)
 		}
 
-		this.ports.forEach(port => this.stopListen(port))
+		this.ports.forEach((port) => this.stopListen(port))
 
-		this.remoteShadows.forEach(remoteShadow =>
+		this.remoteShadows.forEach((remoteShadow) =>
 			remoteShadow.port.addEventListener('message', remoteShadow.msgHandler)
 		)
 
