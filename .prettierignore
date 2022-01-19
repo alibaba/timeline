@@ -2,3 +2,5 @@ src/util
 src/plugins
 
 **/bin/**
+
+*.md
