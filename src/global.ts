@@ -3,11 +3,12 @@
  * @author Simon / gaomeng1900@gmail.com
  */
 
-import Timeline from './Timeline'
+import { Timeline } from './Timeline'
+import { Track } from './Track'
 
 export default Timeline
 
-export { Timeline }
+export { Timeline, Track }
 
 // 尝试挂到全局 @TODO Node与Worker的区分
 let g = {}
@@ -23,8 +24,8 @@ if (typeof window !== 'undefined') {
 	g = process
 }
 
-if (!g.Timeline) {
-	g.Timeline = Timeline
+if (!g['Timeline']) {
+	g['Timeline'] = Timeline
 }
 // else if (g.Timeline.VERSION !== Timeline.VERSION) {
 // 	console.warn('different version of timeline detected');
