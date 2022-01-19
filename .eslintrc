@@ -1,5 +1,4 @@
 {
-	"extends": "standard",
 	"globals": {
 		"Timeline": true,
 		"VERSION": true
@@ -8,16 +7,22 @@
 		"browser": true,
 		"mocha": true,
 		"node": true,
-		"worker": true
+		"worker": true,
+		"es6": true
 	},
-	"parser": "babel-eslint",
+	"root": true,
+	"parser": "@babel/eslint-parser",
+	"plugins": ["@typescript-eslint"],
+	"extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended", "prettier"],
 	"rules": {
-		"space-before-function-paren": 0,
-		"no-tabs": 0,
-		"indent": [0, "tab"],
-		"no-multiple-empty-lines": 0,
-		"curly": 0,
-		"no-mixed-spaces-and-tabs": 0,
-		"comma-dangle": 0
+		"@typescript-eslint/explicit-function-return-type": "off",
+		"@typescript-eslint/no-explicit-any": "off",
+		"@typescript-eslint/no-empty-function": "off",
+		"@typescript-eslint/no-empty-interface": "off",
+		"@typescript-eslint/explicit-module-boundary-types": "off",
+		"@typescript-eslint/no-var-requires": "off",
+		"no-mixed-spaces-and-tabs": ["error", "smart-tabs"],
+		"array-element-newline": ["warn", "consistent"]
+		// "no-extra-semi": "warn"
 	}
 }

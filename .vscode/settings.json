@@ -1,3 +1,29 @@
 {
-	"editor.formatOnSave": true
+	"typescript.validate.enable": true,
+	"editor.defaultFormatter": "esbenp.prettier-vscode",
+	"[json]": {
+		"editor.defaultFormatter": "vscode.json-language-features"
+	},
+	"[javascript]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	},
+	"[typescript]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	},
+	"editor.formatOnPaste": false,
+	"typescript.tsdk": "./node_modules/typescript/lib",
+	"editor.formatOnSave": true,
+	"workbench.colorCustomizations": {
+		"statusBar.background": "#000000",
+		"statusBar.foreground": "#fafafaa8",
+		"statusBar.noFolderBackground": "#000000",
+		"statusBar.debuggingBackground": "#002c49"
+	},
+	"workbench.tree.indent": 24,
+	"workbench.tree.renderIndentGuides": "always",
+	"explorer.decorations.colors": true,
+	"explorer.decorations.badges": true,
+	"files.associations": {
+		"README": "markdown"
+	}
 }

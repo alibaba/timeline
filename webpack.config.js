@@ -1,7 +1,6 @@
 const webpack = require('webpack')
 const path = require('path')
 const fs = require('fs')
-const ProgressBarPlugin = require('progress-bar-webpack-plugin')
 
 process.noDeprecation = true
 
@@ -57,7 +56,6 @@ var config = {
 
 	mode: 'development',
 	plugins: [
-		new ProgressBarPlugin({ width: 30 }),
 		new webpack.NoEmitOnErrorsPlugin(), // 出错时不发布
 	],
 	resolve: {

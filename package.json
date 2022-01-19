@@ -1,57 +1,50 @@
 {
-	"name": "ani-timeline",
-	"version": "1.2.19-m",
-	"author": "Simon <gaomeng1900@gmail.com>",
-	"description": "Manage all your events and animations together.(Stable version used by double-11 fest)",
-	"main": "dist/Timeline.js",
-	"types": "types/index.d.ts",
-	"keywords": [
-		"timeline",
-		"track",
-		"animation",
-		"event",
-		"js",
-		"node"
-	],
-	"license": "MIT",
-	"dependencies": {},
-	"devDependencies": {
-		"@babel/core": "^7.4.0",
-		"@babel/plugin-proposal-object-rest-spread": "^7.4.0",
-		"@babel/plugin-proposal-class-properties": "^7.4.0",
-		"@babel/preset-env": "^7.4.2",
-		"babel-cli": "^6.26.0",
-		"babel-core": "^6.26.3",
-		"babel-loader": "^8.0.5",
-		"babel-preset-env": "^1.7.0",
-		"eslint": "^5.16.0",
-		"eslint-config-standard": "^12.0.0",
-		"eslint-plugin-import": "^2.16.0",
-		"eslint-plugin-node": "^8.0.1",
-		"eslint-plugin-promise": "^4.1.1",
-		"eslint-plugin-standard": "^4.0.0",
-		"compression": "^1.7.3",
-		"babel-eslint": "^10.0.1",
-		"express": "^4.16.4",
-		"webpack": "^4.29.6",
-		"webpack-cli": "^3.3.0",
-		"webpack-dev-middleware": "^3.6.1",
-		"progress-bar-webpack-plugin": "^1.12.1",
-		"worker-loader": "^2.0.0",
-		"pug": "^2.0.3"
-	},
-	"scripts": {
-		"start": "node --max-old-space-size=8192 server.js",
-		"dist": "echo \" do not build this branch ! (webpack --config webpack.config.prod.js) \"",
-		"watch": "webpack --config webpack.config.prod.js --watch",
-		"autofix": "eslint --fix ./",
-		"lint": "eslint ./"
-	},
-	"lint-staged": {
-		"src/**/*.js": [
-			"prettier --write",
-			"eslint --fix",
-			"git add"
-		]
-	}
+  "name": "ani-timeline",
+  "version": "1.3.0-alpha",
+  "author": "Simon <gaomeng1900@gmail.com>",
+  "description": "A Time Controller with Superpower.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "keywords": [
+    "timeline",
+    "track",
+    "animation",
+    "event",
+    "js",
+    "node"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "vite": "2.7.4",
+    "@babel/core": "^7.16.7",
+    "@babel/eslint-parser": "7.16.5",
+    "@babel/preset-env": "^7.16.8",
+    "@typescript-eslint/eslint-plugin": "^5.9.1",
+    "@typescript-eslint/parser": "^5.9.1",
+    "babel-loader": "^8.2.3",
+    "eslint": "^8.6.0",
+    "eslint-config-prettier": "^8.3.0",
+    "express": "^4.17.2",
+    "pug": "^3.0.2",
+    "typescript": "4.5.4",
+    "webpack": "^5.66.0",
+    "webpack-cli": "^4.9.1",
+    "webpack-dev-middleware": "^5.3.0",
+    "worker-loader": "^3.0.8"
+  },
+  "scripts": {
+    "start": "vite",
+    "startWebpack": "node --max-old-space-size=8192 server.js",
+    "build": "npm run compileTS && npm run bundle",
+    "compileTS": "./node_modules/.bin/tsc --project tsconfig.build.json && cp -rf src/plugins/ dist/plugins/ && node ./scripts/fixTscExtension.mjs",
+    "bundle": "webpack --config webpack.config.prod.cjs"
+  },
+  "lint-staged": {
+    "src/**/*.js": [
+      "prettier --write",
+      "eslint --fix",
+      "git add"
+    ]
+  }
 }
