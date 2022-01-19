@@ -1,8 +1,8 @@
-# Timeline - Manipulate time like a master
+# Timeline
 
-A Timeline Controller with Superpower. For Events And Animations.
+**A Timeline Controller with Superpower. For Events And Animations.**
 
-- Wrap all your time-based events and animations into Track.
+- Wrap all your time-based events and animations into Tracks.
 - Play, pause, time-travel, play-by-frame, replay, loop, rewind everything.
 - Always get the predictable result.
 - Monitor and control FPS elegantly.
@@ -101,8 +101,8 @@ interface TimelineOptions {
 	 * - to prevent heating on mobile devices
 	 *
 	 * @advice If the device failed to render at stable 60fps.
-	 * 		 You should cap it to a stable 30 fps rather than let it dither around 30~60 fps.
-	 * 		 It will provide much more comfortable interaction that feel smooth and predictable for fingers and eyes.
+	 *          You should cap it to a stable 30 fps rather than let it dither around 30~60 fps.
+	 *          It will provide much more comfortable interaction that feel smooth and predictable for fingers and eyes.
 	 *
 	 * @note You can change this value any time by {@link Timeline.updateMaxFPS}
 	 * @note this only cap the max fps. actual fps is very much related to the underlying runtime
@@ -137,11 +137,11 @@ interface TimelineOptions {
 	/**
 	 * handler for all the errors thrown from tracks' callback functions
 	 * - if provided.
-	 * 	- all errors will be caught and passed to this function.
-	 * 	- timeline will keep running **unless** this function returns true
+	 *     - all errors will be caught and passed to this function.
+	 *     - timeline will keep running **unless** this function returns true
 	 * - if not provided.
-	 * 	- any error thrown from tracks will be thrown to global scope
-	 * 	- timeline will stop immediately
+	 *     - any error thrown from tracks will be thrown to global scope
+	 *     - timeline will stop immediately
 	 */
 	onError?: (error: Error) => void | true
 }
@@ -250,48 +250,48 @@ clearInterval(ID: number)
 
 ````typescript
 interface Timeline {
-  /**
-   * type identifier
-   */
-  readonly isTimeline = true
-  readonly isTrackGroup = true
+    /**
+     * type identifier
+     */
+    readonly isTimeline = true
+    readonly isTrackGroup = true
 
-	/**
-	 * duration of this timeline.
-	 * @readonly
-	 * ```
-	 * if loop
-	 * 	'timeline will start from beginning'
-	 * else
-	 * 	'timeline will stop'
-	 * ```
-	 */
-	readonly duration: number
+    /**
+     * duration of this timeline.
+     * @readonly
+     * ```
+     * if loop
+     *     'timeline will start from beginning'
+     * else
+     *     'timeline will stop'
+     * ```
+     */
+    readonly duration: number
 
-	/**
-	 * loop this timeline
-	 * @readonly
-	 */
-	readonly loop: boolean
+    /**
+     * loop this timeline
+     * @readonly
+     */
+    readonly loop: boolean
 
-	/**
-	 * is this playing (started and not yet ended or paused, next frame will be automatically fired)
-	 * @readonly
-	 */
-	readonly playing: boolean
+    /**
+     * is this playing (started and not yet ended or paused, next frame will be automatically fired)
+     * @readonly
+     */
+    readonly playing: boolean
 
-	/**
-	 * current time for this timeline.
-	 * @note currentTime ∈ [0, duration]
-	 * @readonly
-	 */
-	readonly currentTime: number
+    /**
+     * current time for this timeline.
+     * @note currentTime ∈ [0, duration]
+     * @readonly
+     */
+    readonly currentTime: number
 
-	/**
-	 * auto calculated fps
-	 * @readonly
-	 */
-	readonly fps = 0
+    /**
+     * auto calculated fps
+     * @readonly
+     */
+    readonly fps = 0
 }
 ````
 
@@ -313,118 +313,118 @@ const track = new Track(options: TrackOptions)
  * construction options
  */
 interface TrackOptions {
-	/**
-	 * 命名，可以用来查找制定Track，也便与调试
-	 * - used to identify a track. specify this if you want to get tracks by id
-	 */
-	id?: number | string
-	loop?: boolean
-	/**
-	 * when to start this track
-	 * @default currentTime of the parent timeline
-	 */
-	startTime?: number
-	/**
-	 * when to end this track
-	 * @note use endTime or duration, not both
-	 * @note if neither endTime or duration are input, duration will be set as Infinity
-	 */
-	endTime?: number
-	/**
-	 * how long is this track
-	 * @note use endTime or duration, not both
-	 * @note if neither endTime or duration are input, duration will be set as Infinity
-	 */
-	duration?: number
-	/**
-	 * callback for start (including every loop)
-	 */
-	onStart?: () => void
-	/**
-	 * callback for end (including every loop)
-	 */
-	onEnd?: () => void
-	/**
-	 * callback for every tick (including start and end)
-	 */
-	onUpdate?: (
     /**
-     * local current time when this happen
-     * @note ∈ loop ? [startTime, endTime) : [startTime, endTime]
+     * 命名，可以用来查找制定Track，也便与调试
+     * - used to identify a track. specify this if you want to get tracks by id
      */
-    currentTime: number,
+    id?: number | string
+    loop?: boolean
     /**
-     * percent of this track
-     * @note ∈ loop ? [0,1) ]: [0,1]
-     * @note if a easing function is provided, this value will be eased
+     * when to start this track
+     * @default currentTime of the parent timeline
      */
-    percent: number
-  ) => void
-	/**
-	 * callback for init (call once before first start)
-	 * @note use this to clean up and initialize a loop track or track on a loop timeline
-	 * @note every time timeline loop back before track, this will be called
-	 */
-	onInit?: () => void
-	/**
-	 * easing function (percent => easedPercent)
-	 * @node input ∈ [0,1]
-	 * @node output ∈ [0,1]
-	 * @note easing(0) == 0
-	 * @note easing(1) == 1
-	 * @note must be monotonically non-decreasing
-	 */
-	easing?: EasingFunction
+    startTime?: number
+    /**
+     * when to end this track
+     * @note use endTime or duration, not both
+     * @note if neither endTime or duration are input, duration will be set as Infinity
+     */
+    endTime?: number
+    /**
+     * how long is this track
+     * @note use endTime or duration, not both
+     * @note if neither endTime or duration are input, duration will be set as Infinity
+     */
+    duration?: number
+    /**
+     * callback for start (including every loop)
+     */
+    onStart?: () => void
+    /**
+     * callback for end (including every loop)
+     */
+    onEnd?: () => void
+    /**
+     * callback for every tick (including start and end)
+     */
+    onUpdate?: (
+        /**
+         * local current time when this happen
+         * @note ∈ loop ? [startTime, endTime) : [startTime, endTime]
+         */
+        currentTime: number,
+        /**
+         * percent of this track
+         * @note ∈ loop ? [0,1) ]: [0,1]
+         * @note if a easing function is provided, this value will be eased
+         */
+        percent: number
+    ) => void
+    /**
+     * callback for init (call once before first start)
+     * @note use this to clean up and initialize a loop track or track on a loop timeline
+     * @note every time timeline loop back before track, this will be called
+     */
+    onInit?: () => void
+    /**
+     * easing function (percent => easedPercent)
+     * @node input ∈ [0,1]
+     * @node output ∈ [0,1]
+     * @note easing(0) == 0
+     * @note easing(1) == 1
+     * @note must be monotonically non-decreasing
+     */
+    easing?: EasingFunction
 }
 
 /**
  * Properties
  */
 interface {
-  id: number | string | undefined
-  isTrack: true
+    id: number | string | undefined
+    isTrack: true
 
-	/**
-	 * set track.alive false to stop it immediately and mark it disposable.
-	 */
-	alive = true
+    /**
+     * set track.alive false to stop it immediately and mark it disposable.
+     */
+    alive = true
 
-  readonly loop: boolean
+    readonly loop: boolean
 
-  	/**
-	 * this track has started and not yet ended
-	 * @note always set .started true before set .running true
-	 * @note if running true, started must be true
-	 * @note running false but started true, means that this track has ended
-	 */
-	running : boolean // 运行中
+      /**
+     * this track has started and not yet ended
+     * @note always set .started true before set .running true
+     * @note if running true, started must be true
+     * @note running false but started true, means that this track has ended
+     */
+    running : boolean // 运行中
 
-	/**
-	 * has this track been inited
-	 */
-	inited : boolean // 初始化完成
+    /**
+     * has this track been inited
+     */
+    inited : boolean // 初始化完成
 
-	/**
-	 * has this track been started
-	 */
-	started : boolean // 本轮播放过
+    /**
+     * has this track been started
+     */
+    started : boolean // 本轮播放过
 
-	/**
-	 * which cycle of the loop (循环次数)
-	 */
-	iteration : number
+    /**
+     * which cycle of the loop (循环次数)
+     */
+    iteration : number
 
-	/**
-	 * whether this track is expired (是否已过期)
-	 */
-	get expired() {
-		return this.started && !this.running
-	}
+    /**
+     * whether this track is expired (是否已过期)
+     */
+    get expired() {
+        return this.started && !this.running
+    }
 
-  onStart: TrackOptions['onStart']
-	onEnd: TrackOptions['onEnd']
-	onUpdate: TrackOptions['onUpdate']
-	onInit: TrackOptions['onInit']
+    onStart: TrackOptions['onStart']
+    onEnd: TrackOptions['onEnd']
+    onUpdate: TrackOptions['onUpdate']
+    onInit: TrackOptions['onInit']
 
 }
 ```
@@ -464,7 +464,7 @@ The callback order will be:
 - trackB.onEnd()
 ```
 
-CN: (请避免 Track 之前相互依赖，如果多个 Track 被跳过，Timeline 将按照 Track 被 add 的顺序依次处理，无法保证不同 Track 之间时间点的顺序正确)
+> CN: 应避免 Track 之前相互依赖，如果多个 Track 被跳过，Timeline 将按照 Track 被 add 的顺序依次处理，无法保证不同 Track 之间时间点的顺序正确
 
 - `Timeline` with _`l`_ not _`L`_ , not `TimeLine`
 
@@ -500,3 +500,5 @@ timeline.addTrack({
 ```
 
 # Work with web workers
+
+refactoring...
