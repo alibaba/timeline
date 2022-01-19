@@ -1,4 +1,4 @@
-import Timeline from '../src/index'
+import Timeline from '../dist/index'
 
 const G = typeof window !== 'undefined' ? window : self
 
