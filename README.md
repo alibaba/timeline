@@ -12,7 +12,7 @@
 
 # Install
 
-`npm i --save ani-timeline`
+`npm i --save ani-timeline@alpha`
 
 Support `browser`,`WebWorker`,`node.js`,`electron`,`webview`.
 
@@ -23,7 +23,7 @@ Made with typescript.
 # Basic
 
 ```javascript
-import Timeline from 'ani-timeline'
+import { Timeline } from 'ani-timeline'
 
 const timeline = new Timeline({
     duration: Infinity,
