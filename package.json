@@ -1,6 +1,6 @@
 {
   "name": "ani-timeline",
-  "version": "1.3.0-alpha",
+  "version": "1.3.0-alpha.1",
   "author": "Simon <gaomeng1900@gmail.com>",
   "description": "A Time Controller with Superpower.",
   "main": "dist/index.js",
@@ -13,6 +13,10 @@
     "event",
     "js",
     "node"
+  ],
+  "files": [
+    "dist",
+    "README.md"
   ],
   "license": "MIT",
   "devDependencies": {
