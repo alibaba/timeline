@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>timeline-examples-vite</title>
+		<link rel="shortcut icon" href="#" />
+		<style>
+			:root {
+				--width: 1000px;
+				--height: 200px;
+			}
+
+			* {
+				font-family: monospace;
+			}
+
+			#time {
+				position: absolute;
+				margin-top: var(--height);
+				width: var(--width);
+			}
+
+			.block {
+				position: absolute;
+			}
+
+			#timeline {
+				width: var(--width);
+				height: var(--height);
+				background-color: rgb(114, 136, 177);
+			}
+			#timeline-start {
+				position: absolute;
+				left: 0;
+				bottom: 0;
+			}
+			#timeline-end {
+				position: absolute;
+				right: 0;
+				bottom: 0;
+				text-align: right;
+			}
+			#track-start {
+				position: absolute;
+				left: 0;
+				bottom: 0;
+			}
+			#track-end {
+				position: absolute;
+				right: 0;
+				bottom: 0;
+				text-align: right;
+			}
+
+			#track {
+				width: calc(var(--width) * 0.2);
+				margin-left: calc(var(--width) * 0.2);
+				height: calc(var(--height) * 0.9);
+				margin-top: calc(var(--height) * 0.1);
+				background-color: rgb(170, 135, 194);
+			}
+
+			span {
+				display: inline-block;
+				margin-top: 2px;
+				padding: 1px;
+				border-radius: 2px;
+				background-color: rgb(92, 155, 152);
+			}
+		</style>
+	</head>
+	<body>
+		<div id="timeline" class="block">
+			timeline
+			<div id="timeline-start">start:<br />0ms</div>
+			<div id="timeline-end">duration:<br />10000ms</div>
+
+			<div id="timeline-current">currentTime:<span id="timeline-current-value">0</span>ms</div>
+		</div>
+
+		<div id="track" class="block">
+			track
+			<div id="track-start">startTime:<br />2000ms</div>
+			<div id="track-end">endTime:<br />4000ms</div>
+
+			<div id="track-alive">alive:<span id="track-alive-value">true</span></div>
+			<div id="track-inited">inited:<span id="track-inited-value">true</span></div>
+			<div id="track-started">started:<span id="track-started-value">true</span></div>
+			<div id="track-running">running:<span id="track-running-value">true</span></div>
+			<div id="track-iteration">iteration:<span id="track-iteration-value">true</span></div>
+		</div>
+
+		<div>
+			<input type="range" id="time" name="volume" min="0" max="10000" value="0" />
+		</div>
+
+		<script type="module" src="./track.ts"></script>
+	</body>
+</html>

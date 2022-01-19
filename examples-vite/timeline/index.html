@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>timeline-examples-vite</title>
+		<link rel="shortcut icon" href="#" />
+		<style>
+			:root {
+				--width: 1000px;
+				--height: 300px;
+			}
+
+			* {
+				font-family: monospace;
+				/* font-size: 1px; */
+			}
+
+			#time {
+				position: absolute;
+				margin-top: var(--height);
+				width: var(--width);
+			}
+
+			.block {
+				position: absolute;
+			}
+
+			#timeline {
+				width: var(--width);
+				height: var(--height);
+				background-color: rgb(114, 136, 177);
+			}
+			#timeline div {
+				display: inline-block;
+			}
+
+			#timeline-start {
+				position: absolute;
+				left: 0;
+				bottom: 0;
+			}
+			#timeline-end {
+				position: absolute;
+				right: 0;
+				bottom: 0;
+				text-align: right;
+			}
+			#track-start {
+				position: absolute;
+				left: 0;
+				bottom: 0;
+			}
+			#track-end {
+				position: absolute;
+				right: 0;
+				bottom: 0;
+				text-align: right;
+			}
+
+			#track {
+				opacity: 0.8;
+				width: calc(var(--width) * 0.2);
+				margin-left: calc(var(--width) * 0.2);
+				height: calc(var(--height) * 0.8);
+				margin-top: calc(var(--height) * 0.2);
+				background-color: rgb(170, 135, 194);
+			}
+
+			#track div {
+				/* display: inline-block; */
+			}
+
+			span {
+				display: inline-block;
+				margin-top: 2px;
+				padding: 1px;
+				border-radius: 2px;
+				background-color: rgb(92, 155, 152);
+			}
+
+			#btns {
+				position: absolute;
+				top: calc(var(--height) + 50px);
+			}
+		</style>
+	</head>
+	<body>
+		<div id="timeline" class="block">
+			timeline
+			<br />
+			<div id="timeline-start">start:<br /><span id="timeline-start-value">0</span>ms</div>
+			<div id="timeline-end">duration:<br /><span id="timeline-end-value"></span>ms</div>
+			<div id="timeline-current">currentTime:<span id="timeline-current-value">0</span>ms</div>
+
+			<div id="timeline-playing">playing:<span id="timeline-playing-value"></span></div>
+			<div id="timeline-referenceTime">
+				referenceTime:<span id="timeline-referenceTime-value"></span>
+			</div>
+			<div id="timeline-animationFrameID">
+				animationFrameID:<span id="timeline-animationFrameID-value"></span>
+			</div>
+			<div id="timeline-fps">fps:<span id="timeline-fps-value"></span></div>
+		</div>
+
+		<div id="track" class="block">
+			track
+			<br />
+			<div id="track-start">startTime:<br /><span id="track-start-value"></span>ms</div>
+			<div id="track-end">endTime:<br /><span id="track-end-value"></span>ms</div>
+
+			<div id="track-alive">alive:<span id="track-alive-value"></span></div>
+			<div id="track-inited">inited:<span id="track-inited-value"></span></div>
+			<div id="track-started">started:<span id="track-started-value"></span></div>
+			<div id="track-running">running:<span id="track-running-value"></span></div>
+			<div id="track-iteration">iteration:<span id="track-iteration-value"></span></div>
+			<div id="track-loop">loop:<span id="track-loop-value"></span></div>
+			<div id="track-currentTime">currentTime:<span id="track-currentTime-value"></span></div>
+			<div id="track-percent">percent:<span id="track-percent-value"></span></div>
+		</div>
+
+		<div>
+			<input type="range" id="time" name="volume" min="0" max="5000" value="0" disabled />
+		</div>
+
+		<div id="btns">
+			<button id="play">play</button>
+			<button id="stop">stop</button>
+			<button id="pause">pause</button>
+			<button id="resume">resume</button>
+		</div>
+
+		<script type="module" src="./index.ts"></script>
+	</body>
+</html>
