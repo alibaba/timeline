@@ -2,12 +2,13 @@
 
 **A Timeline Controller with Superpower. For Events And Animations.**
 
-- Wrap all your time-based events and animations into Tracks.
-- Play, pause, time-travel, play-by-frame, replay, loop, rewind everything.
-- Always get the predictable result.
+- Wrap time-based events and animations into Tracks. Schedule them like a video editor.
+- Play, pause, seek, rewind, loop, tick-by-frame, and replay everything.
+- Always get the predictable result no matter how you manipulate time.
 - Monitor and control FPS elegantly.
+- Work under unstable system clock.
 
-动画与事件时间线管理器。
+有超能力的时间线管理器。
 
 # Install
 
@@ -24,28 +25,25 @@ Made with typescript.
 ```javascript
 import Timeline from 'ani-timeline'
 
-// 创建一个timeline实例
 const timeline = new Timeline({
-    duration: Infinity, // 整个timeline的时长，超过后会停止或循环
+    duration: Infinity,
 })
 
-// 开始运行这个timeline
 timeline.play()
 
-// 添加一个track（动画轨道）
 timeline.add({
-    startTime: timeline.currentTime + 500, // 开始时间
+    startTime: timeline.currentTime + 500, // ms
     duration: 1000, // ms
-    loop: false, // 是否循环
+    loop: false,
     onStart: () => {
         console.log('start')
-    }, // 起始回调
+    }, 
     onEnd: () => {
         console.log('end')
-    }, // 结束回调
-    onUpdate: (time, percent) => {
-        console.log('update', time, percent)
-    }, // 更新回调
+    },
+    onUpdate: (currentTime, percent) => {
+        console.log('update', currentTime, percent)
+    },
 })
 ```
 
