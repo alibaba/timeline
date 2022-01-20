@@ -289,7 +289,13 @@ interface Timeline {
      * auto calculated fps
      * @readonly
      */
-    readonly fps = 0
+    readonly fps: number
+
+    /**
+	 * auto calculated frametime
+	 * @readonly
+	 */
+	readonly frametime: number
 }
 ````
 

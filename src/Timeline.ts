@@ -179,6 +179,12 @@ export class Timeline extends TrackGroup {
 	 */
 	fps = 0
 
+	/**
+	 * auto calculated frametime
+	 * @readonly
+	 */
+	frametime = 0
+
 	// #region private
 
 	/**
@@ -219,7 +225,6 @@ export class Timeline extends TrackGroup {
 	 */
 	private _timeoutID = 0
 
-	private _frametime = 0
 	private _timeBeforePaused = 0
 
 	// #endregion
@@ -298,9 +303,9 @@ export class Timeline extends TrackGroup {
 			}
 
 			// 帧率统计
-			this._frametime =
-				this._frametime * (1 - this._config.recordFPSDecay) + step * this._config.recordFPSDecay // this does not consider maxStep
-			this.fps = 1000 / this._frametime
+			this.frametime =
+				this.frametime * (1 - this._config.recordFPSDecay) + step * this._config.recordFPSDecay // this does not consider maxStep
+			this.fps = 1000 / this.frametime
 		} else {
 			DEV && console.info('timeline DEV: _autoTick : lastTimeNow not provided')
 		}
