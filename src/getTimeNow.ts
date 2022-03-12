@@ -56,7 +56,7 @@ let MODE: 'process.hrtime' | 'performance.now' | 'Date.now' | 'Date.getTime'
 let decreaseCount = 0
 
 if (typeof process !== 'undefined' && process.hrtime !== undefined) {
-	console.log('##timeline::use process.hrtime')
+	console.debug('##timeline::use process.hrtime')
 
 	MODE = 'process.hrtime'
 

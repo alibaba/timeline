@@ -307,7 +307,7 @@ export class Timeline extends TrackGroup {
 				this.frametime * (1 - this._config.recordFPSDecay) + step * this._config.recordFPSDecay // this does not consider maxStep
 			this.fps = 1000 / this.frametime
 		} else {
-			DEV && console.info('timeline DEV: _autoTick : lastTimeNow not provided')
+			DEV && console.debug('timeline DEV: _autoTick : lastTimeNow not provided')
 		}
 
 		// 最长帧限制
