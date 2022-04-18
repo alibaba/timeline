@@ -38,7 +38,7 @@
     "worker-loader": "^3.0.8"
   },
   "scripts": {
-    "start": "vite",
+    "start": "vite --config vite.config.cjs",
     "startWebpack": "node --max-old-space-size=8192 server.js",
     "build": "npm run compileTS && npm run bundle",
     "compileTS": "./node_modules/.bin/tsc --project tsconfig.build.json && cp -rf src/plugins/ dist/plugins/ && node ./scripts/fixTscExtension.mjs",
