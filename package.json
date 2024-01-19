@@ -20,7 +20,7 @@
   ],
   "license": "MIT",
   "devDependencies": {
-    "vite": "2.7.4",
+    "vite": "2.9.17",
     "@babel/core": "^7.16.7",
     "@babel/eslint-parser": "7.16.5",
     "@babel/preset-env": "^7.16.8",
